@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GrowVia Admin Login</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="admin-wrap">
+    <section class="admin-card" style="max-width:560px; margin: 60px auto;">
+      <h1>Admin Login</h1>
+      <p>Enter your administrator credentials to manage testimonials, order settings, and the promotional banner.</p>
+      <form action="/login" method="post" class="form-grid">
+        <div class="field admin-full">
+          <label for="username">Username</label>
+          <input id="username" name="username" class="control" type="text" autocomplete="username" required />
+        </div>
+        <div class="field admin-full">
+          <label for="password">Password</label>
+          <input id="password" name="password" class="control" type="password" autocomplete="current-password" required />
+        </div>
+        <div class="admin-actions admin-full">
+          <button type="submit" class="admin-btn">Sign in</button>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

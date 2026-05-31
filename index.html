@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GrowVia — Your Growth. Our Mission.</title>
+<meta name="description" content="GrowVia — ethical, safe and professional social media growth services." />
+<script>
+  (function(){
+    var d=document.documentElement;
+    d.classList.add('js');
+    try{ var t=localStorage.getItem('growvia-theme'); if(t) d.setAttribute('data-theme', t); }catch(e){}
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%235468ff'/%3E%3Ctext y='.9em' x='5px' font-size='80' font-weight='bold' fill='%23fff' font-family='system-ui, sans-serif'%3EG%3C/text%3E%3C/svg%3E">
+</head>
+<body class="is-loading">
+
+<!-- ============ LOADER ============ -->
+<div id="loader">
+  <div class="loader-inner">
+    <div class="loader-mark">
+      <span style="animation-delay:.05s">G</span><span style="animation-delay:.10s">r</span><span style="animation-delay:.15s">o</span><span style="animation-delay:.20s">w</span><span class="accent" style="animation-delay:.28s">V</span><span class="accent" style="animation-delay:.34s">i</span><span class="accent" style="animation-delay:.40s">a</span>
+    </div>
+    <div class="loader-line-wrap"><div class="loader-line"></div></div>
+    <div class="loader-meta">
+      <span>Crafting your experience</span>
+      <span class="loader-pct">000</span>
+    </div>
+  </div>
+</div>
+<div class="curtain"><span></span><span></span><span></span><span></span><span></span></div>
+
+<div class="grain"></div>
+
+<!-- ============ MARQUEE ============ -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee__track">
+    <span>At <span data-brand-name>GrowVia</span>, we provide ethical, safe, and professional social media growth services. We do not promote, sell, or engage with any content, products, or services related to Israel, alcohol, gambling, nudity, sexual material, adult content, or anything offensive to religious or cultural beliefs. We are committed to protecting our users from fraud and scams—any suspicious activity or fraudulent requests will not be entertained and may be reported. By using <span data-brand-name>GrowVia</span>, you acknowledge and agree to these principles, ensuring that all interactions remain safe, ethical, and aligned with moral values. Thank you for respecting our guidelines.<span class="dot"></span></span>
+    <span>At <span data-brand-name>GrowVia</span>, we provide ethical, safe, and professional social media growth services. We do not promote, sell, or engage with any content, products, or services related to Israel, alcohol, gambling, nudity, sexual material, adult content, or anything offensive to religious or cultural beliefs. We are committed to protecting our users from fraud and scams—any suspicious activity or fraudulent requests will not be entertained and may be reported. By using <span data-brand-name>GrowVia</span>, you acknowledge and agree to these principles, ensuring that all interactions remain safe, ethical, and aligned with moral values. Thank you for respecting our guidelines.<span class="dot"></span></span>
+  </div>
+  <button class="marquee__close" id="marqueeClose" aria-label="Dismiss notice">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+</div>
+
+<!-- ============ NAVBAR ============ -->
+<nav class="nav">
+  <div class="wrap">
+    <a class="logo" id="siteLogoLink" href="#top" aria-label="GrowVia home">
+      <span class="logo__mark" id="logoMark">G</span>
+      <span class="logo__text" id="logoText">Grow<b>Via</b></span>
+    </a>
+    <div class="nav__actions">
+      <div class="ccy-toggle nav-ccy" id="navCcy" aria-label="Currency">
+        <button type="button" class="ccy-opt active" data-ccy="PKR">PKR</button>
+      </div>
+      <button type="button" id="pricingListBtn" class="nav-pricing-btn" aria-label="View pricing list">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        View Prices
+      </button>
+      <button class="theme-toggle" data-theme-toggle aria-label="Toggle light and dark theme">
+        <span class="theme-toggle__knob">
+          <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+          <svg class="i-moon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        </span>
+      </button>
+      <button class="btn-about" data-open-about>
+        <span>About Us</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+<div class="nav-tagline" id="siteTagline">Your Growth. Our Mission.</div>
+
+<!-- ============ HERO ============ -->
+<main id="top">
+<section class="hero">
+  <div class="hero__glow"></div>
+  <div class="hero__ambient" aria-hidden="true">
+    <span class="blob b1"></span>
+    <span class="blob b2"></span>
+    <span class="blob b3"></span>
+  </div>
+  <div class="hero__video" id="heroVideoWrap" data-video-srcs="https://cdn.pixabay.com/video/2025/03/28/268230_large.mp4|assets/hero-bg.mp4" aria-hidden="true">
+    <video id="heroVideo" muted loop playsinline preload="auto"></video>
+    <div class="hero__video-scrim"></div>
+  </div>
+  <div class="wrap">
+    <div class="hero__copy">
+      <h1 class="reveal" data-d="1">Premium growth for serious <em>creators &amp; brands.</em></h1>
+      <p class="hero__sub reveal" data-d="2"><span data-brand-name>GrowVia</span> delivers ethical, safe and professional social media growth across every major platform. Real momentum, transparent process, zero compromise on your values.</p>
+      <div class="hero__stats reveal" data-d="2">
+        <div class="stat">
+          <div class="stat__num">12<span>M+</span></div>
+          <div class="stat__label">Engagements delivered</div>
+        </div>
+        <div class="stat">
+          <div class="stat__num">40<span>k+</span></div>
+          <div class="stat__label">Orders completed</div>
+        </div>
+        <div class="stat">
+          <div class="stat__num">4.9<span>/5</span></div>
+          <div class="stat__label">Average rating</div>
+        </div>
+      </div>
+      <div class="hero__trust reveal" data-d="3">
+        <div class="badges">
+          <span><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80" alt="User A" /></span>
+          <span><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100&q=80" alt="User S" /></span>
+          <span><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&h=100&q=80" alt="User M" /></span>
+          <span><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&h=100&q=80" alt="User R" /></span>
+        </div>
+        <span>Loved by founders, agencies &amp; creators worldwide</span>
+      </div>
+    </div>
+
+    <!-- ORDER FORM -->
+    <div class="order-card reveal" data-d="1">
+      <div class="order-card__head">
+        <h2>Place your order</h2>
+        <p>Fill in the details and we'll confirm instantly on WhatsApp.</p>
+      </div>
+      <form id="orderForm" class="form-grid" novalidate>
+        <div class="field field-icon">
+          <label for="f_name">Full Name <span class="req">*</span></label>
+          <div class="input-wrap">
+            <span class="field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4z"/><path d="M6 20v-1a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v1"/></svg>
+            </span>
+            <input class="control" id="f_name" type="text" placeholder="e.g. Ahmed Khan" autocomplete="name" />
+          </div>
+        </div>
+        <div class="field field-icon">
+          <label for="f_whatsapp">WhatsApp Number <span class="req">*</span></label>
+          <div class="input-wrap">
+            <span class="field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.81 19.81 0 0 1 3 5.18 2 2 0 0 1 5 3h3a2 2 0 0 1 2 1.72 12.3 12.3 0 0 0 .7 2.73 2 2 0 0 1-.45 2.11L9.2 10.2a16 16 0 0 0 6.58 6.58l1.65-1.03a2 2 0 0 1 2.11-.45 12.3 12.3 0 0 0 2.73.7A2 2 0 0 1 22 16.92z"/></svg>
+            </span>
+            <input class="control" id="f_whatsapp" type="tel" placeholder="e.g. 0312 3456789" autocomplete="tel" />
+          </div>
+        </div>
+        <div class="field col-2 mode-field">
+          <div class="seg-toggle" id="orderMode" role="tablist" aria-label="Order type">
+            <span class="seg-ind" id="segInd"></span>
+            <button type="button" class="seg-opt active" data-mode="single" role="tab">Single Order</button>
+            <button type="button" class="seg-opt" data-mode="bulk" role="tab">Bulk Order</button>
+          </div>
+        </div>
+        <div class="field col-2">
+          <label for="f_quality_select">Service Quality <span class="req">*</span></label>
+          <div class="quality-row">
+            <select class="control" id="f_quality_select" required>
+              <option value="" disabled selected hidden>— Select service quality —</option>
+              <option value="organic">⭐ Premium</option>
+              <option value="bot">🚀 Basic</option>
+            </select>
+            <div id="qualityNote" class="quality-note"></div>
+          </div>
+          <input type="hidden" id="f_quality" value="" />
+        </div>
+        <div id="singleFields" style="display:contents">
+        <div class="field field-icon">
+          <label id="platformLabel">Platform <span class="req">*</span></label>
+          <div class="input-wrap">
+            <span class="field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12h20"/><path d="M12 2a20 20 0 0 1 0 20"/></svg>
+            </span>
+            <div class="cselect" id="platformSelect">
+              <button type="button" class="control cselect__btn" id="platformBtn" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="platformLabel">
+                <span class="cselect__current"><span class="cselect__ph">Select platform</span></span>
+                <svg class="cselect__chev" viewBox="0 0 12 8"><path d="M1 1.5L6 6.5L11 1.5"/></svg>
+              </button>
+              <div class="cselect__panel" id="platformPanel" role="listbox"></div>
+              <input type="hidden" id="f_platform" />
+            </div>
+          </div>
+        </div>
+        <div class="field field-icon">
+          <label for="f_service">Service Type <span class="req">*</span></label>
+          <div class="input-wrap">
+            <span class="field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
+            </span>
+            <select class="control" id="f_service" disabled>
+              <option value="" disabled selected hidden>Select platform first</option>
+            </select>
+          </div>
+        </div>
+        <div class="field field-icon">
+          <label for="f_qty">Quantity <span class="req">*</span></label>
+          <div class="input-wrap">
+            <span class="field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="3" rx="1.5"/><rect x="4" y="10.5" width="10" height="3" rx="1.5"/><rect x="4" y="16" width="6" height="3" rx="1.5"/></svg>
+            </span>
+            <input class="control" id="f_qty" type="number" min="1" placeholder="e.g. 1000" />
+          </div>
+        </div>
+        <div class="field field-icon">
+          <label for="f_link">Post / Profile Link <span class="req">*</span></label>
+          <div class="input-wrap">
+            <span class="field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 1 7.07 0l1.43 1.43a3.5 3.5 0 0 1 0 4.95 3.5 3.5 0 0 1-4.95 0l-1.43-1.43"/><path d="M14 11a5 5 0 0 0-7.07 0L5.5 12.43a3.5 3.5 0 0 0 0 4.95 3.5 3.5 0 0 0 4.95 0L12.88 16"/></svg>
+            </span>
+            <input class="control" id="f_link" type="url" placeholder="https://…" />
+          </div>
+        </div>
+        </div>
+
+        <div id="bulkFields" class="field col-2 bulk-panel" style="display:none">
+          <label>Bulk Order <span style="color:var(--text-3);font-weight:500;text-transform:none;letter-spacing:0">— build your list, then send all at once</span></label>
+          <div class="bulk-builder">
+            <div class="bulk-row">
+              <div class="bulk-platform">
+                <span class="bulk-platform-icon" id="bPfIcon" aria-hidden="true"></span>
+                <select class="control" id="b_platform">
+                  <option value="" disabled selected hidden>Platform</option>
+                </select>
+              </div>
+              <div class="bulk-field field-icon">
+                <span class="field-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
+                </span>
+                <select class="control" id="b_service" disabled>
+                  <option value="" disabled selected hidden>Service</option>
+                </select>
+              </div>
+            </div>
+            <div class="bulk-row">
+              <div class="bulk-field field-icon">
+                <span class="field-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="3" rx="1.5"/><rect x="4" y="10.5" width="10" height="3" rx="1.5"/><rect x="4" y="16" width="6" height="3" rx="1.5"/></svg>
+                </span>
+                <input class="control" id="b_qty" type="number" min="1" placeholder="Quantity" />
+              </div>
+              <div class="bulk-field field-icon">
+                <span class="field-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 1 7.07 0l1.43 1.43a3.5 3.5 0 0 1 0 4.95 3.5 3.5 0 0 1-4.95 0l-1.43-1.43"/><path d="M14 11a5 5 0 0 0-7.07 0L5.5 12.43a3.5 3.5 0 0 0 0 4.95 3.5 3.5 0 0 0 4.95 0L12.88 16"/></svg>
+                </span>
+                <input class="control" id="b_link" type="url" placeholder="Post / Profile link" />
+              </div>
+            </div>
+            <button type="button" class="bulk-add" id="bulkAdd">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Add item to list
+            </button>
+          </div>
+          <textarea class="control bulk-list" id="b_list" placeholder="Your added items appear here — or type / paste them manually, one per line…
+e.g.  Instagram — Followers — 1000 — https://instagram.com/yourpage"></textarea>
+          <div class="bulk-meta">
+            <span id="bulkCount">0 items in your order</span>
+            <span class="bulk-meta__note">Final quote confirmed on WhatsApp</span>
+          </div>
+          <div class="bulk-price-summary" id="bulkPriceSummary" aria-live="polite">
+            <span>Total estimate: <strong id="bulkTotal">—</strong></span>
+          </div>
+        </div>
+        <div class="field col-2 field-icon">
+          <label for="f_notes">Notes <span style="color:var(--text-3);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></label>
+          <div class="input-wrap">
+            <span class="field-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h7"/><path d="M7 4h9l3 3v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M14 4v4H7"/></svg>
+            </span>
+            <textarea class="control" id="f_notes" placeholder="Any specific instructions or delivery preferences…"></textarea>
+          </div>
+        </div>
+        <input type="hidden" id="f_order_id" />
+        <div class="price-box" id="priceBox" aria-live="polite">
+          <div class="price-box__head">
+            <span class="price-box__k">Estimated price</span>
+            <span class="price-box__ccy" id="priceCcyLabel">PKR</span>
+          </div>
+          <div class="price-box__row">
+            <div class="price-box__rate">
+              <span class="price-box__k">Rate</span>
+              <span class="price-box__v" id="priceRate">—</span>
+            </div>
+            <div class="price-box__total">
+              <span class="price-box__k">Total</span>
+              <span class="price-box__big" id="priceTotal">—</span>
+              <span class="price-box__alt" id="priceAlt"></span>
+            </div>
+          </div>
+          <div class="price-box__hint" id="priceHint">Select platform &amp; service to see pricing</div>
+        </div>
+        <div id="paymentMethodsBar" class="payment-methods-bar" style="display:none;">
+          <span class="payment-methods-bar__label">We accept</span>
+          <span id="paymentMethodsList"></span>
+        </div>
+        <button type="submit" class="submit-btn" id="orderSubmitBtn">
+          <span class="shine"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+          <span class="submit-label">Place Order</span>
+        </button>
+        <div class="form-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          Your details are sent securely &amp; only used to process your order.
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============ PRICING OVERLAY (full page, like About) ============ -->
+<div class="pricing-overlay" id="pricingModal" role="dialog" aria-modal="true" aria-label="Pricing List">
+  <div class="about-topbar">
+    <div class="wrap">
+      <button type="button" class="back-btn" id="pricingModalClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Back
+      </button>
+      <div style="font-size:18px;font-weight:800;color:var(--text);">💰 Pricing List</div>
+      <div style="font-size:13px;color:var(--text-3);">Rates per 1,000 units</div>
+    </div>
+  </div>
+  <div class="wrap" style="padding-top:40px;padding-bottom:80px;">
+    <div id="pricingModalBody" style="display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:1100px;margin:0 auto;">
+      <div class="pricing-modal__loading">Loading pricing…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="footer__big" id="footerBrand">GrowVia</div>
+  <div class="wrap">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a class="logo" id="overlayLogoLink" href="#" data-close-about><span class="logo__mark" id="overlayLogoMark">G</span><span class="logo__text" id="overlayLogoText">Grow<b>Via</b></span></a>
+        <div class="footer__tag">Your Growth. <span>Our Mission.</span></div>
+        <div class="footer__pay-logos" style="display:flex;align-items:center;gap:20px;margin-top:24px;flex-wrap:wrap;">
+          <div style="background:#ffffff;border:1px solid #eef0f6;padding:12px 36px;border-radius:16px;display:flex;align-items:center;justify-content:center;height:108px;transition:transform 0.2s;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.08);" onmouseover="this.style.transform='translateY(-4px)';" onmouseout="this.style.transform='none';">
+            <img src="https://www.jazzcash.com.pk/jazzcash-logos-external/JC-Eng-Black.png" alt="JazzCash" style="height:60px;width:auto;object-fit:contain;" />
+          </div>
+          <div style="background:#ffffff;border:1px solid #eef0f6;padding:12px 36px;border-radius:16px;display:flex;align-items:center;justify-content:center;height:108px;transition:transform 0.2s;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.08);" onmouseover="this.style.transform='translateY(-4px)';" onmouseout="this.style.transform='none';">
+            <img src="https://crystalpng.com/wp-content/uploads/2024/10/Easypaisa-logo.png" alt="EasyPaisa" style="height:60px;width:auto;object-fit:contain;" />
+          </div>
+          <div style="background:#ffffff;border:1px solid #eef0f6;padding:12px 36px;border-radius:16px;display:flex;align-items:center;justify-content:center;height:108px;transition:transform 0.2s;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.08);" onmouseover="this.style.transform='translateY(-4px)';" onmouseout="this.style.transform='none';">
+            <img src="https://crystalpng.com/wp-content/uploads/2025/09/Sadapay-Logo.png" alt="SadaPay" style="height:60px;width:auto;object-fit:contain;" />
+          </div>
+          <div style="background:#ffffff;border:1px solid #eef0f6;padding:12px 36px;border-radius:16px;display:flex;align-items:center;justify-content:center;height:108px;transition:transform 0.2s;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.08);" onmouseover="this.style.transform='translateY(-4px)';" onmouseout="this.style.transform='none';">
+            <img src="https://crystalpng.com/wp-content/uploads/2025/09/nayapay-logo.png" alt="NayaPay" style="height:60px;width:auto;object-fit:contain;" />
+          </div>
+        </div>
+      </div>
+      <div class="footer__links">
+        <div class="footer__col">
+          <h4>Company</h4>
+          <button data-open-about>About Us</button>
+          <button data-open-about>FAQ</button>
+          <button data-open-about>Testimonials</button>
+        </div>
+        <div class="footer__col">
+          <h4>Get Started</h4>
+          <a href="#top">Place an order</a>
+          <a href="https://wa.me/3143632195" id="footerWaLink" target="_blank" rel="noopener">Contact on WhatsApp</a>
+        </div>
+        <div class="footer__col">
+          <h4>Principles</h4>
+          <button data-open-about>Ethical &amp; safe</button>
+          <button data-open-about>Fraud protection</button>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© 2025 GrowVia. All Rights Reserved.</span>
+      <span>Built with care · Ethical social growth</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ ABOUT OVERLAY ============ -->
+<div class="about-overlay" id="aboutOverlay" role="dialog" aria-modal="true" aria-label="About GrowVia">
+  <div class="about-topbar">
+    <div class="wrap">
+      <button class="back-btn" data-close-about>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+        Back
+      </button>
+      <a class="logo" id="aboutOverlayLogoLink" href="#" data-close-about><span class="logo__mark" id="aboutOverlayLogoMark">G</span><span class="logo__text" id="aboutOverlayLogoText">Grow<b>Via</b></span></a>
+    </div>
+  </div>
+
+  <!-- Who we are -->
+  <section class="about-section about-hero">
+    <div class="wrap">
+      <div class="section-label reveal">Who We Are</div>
+      <h1 class="reveal" data-d="1">Built on trust, powered by genuine growth.</h1>
+      <p class="reveal" data-d="2"><span data-brand-name>GrowVia</span> is a premium social media growth partner for creators, founders and brands who care about doing things right. We believe real influence is built on ethics, transparency and respect — for our clients, their audiences, and the values that matter to them.</p>
+    </div>
+  </section>
+
+  <section class="about-section" style="padding-top:0">
+    <div class="wrap">
+      <div class="who-grid">
+        <div class="who-card reveal">
+          <div class="who-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.4 8.3-8 10-4.6-1.7-8-5-8-10V6l8-4z" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h3>Ethical by design</h3>
+          <p>We never engage with content that conflicts with religious, cultural or moral values. Safe, respectful growth is the only growth we offer.</p>
+        </div>
+        <div class="who-card reveal" data-d="1">
+          <div class="who-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 13a9 9 0 0 1 18 0" stroke-linecap="round"/><circle cx="12" cy="13" r="2.5"/><path d="M12 2v2M5 6l1.4 1.4M19 6l-1.4 1.4" stroke-linecap="round"/></svg></div>
+          <h3>Fraud-protected</h3>
+          <p>Every order is reviewed for suspicious activity. We actively shield our clients from scams — any fraudulent request is declined and may be reported.</p>
+        </div>
+        <div class="who-card reveal" data-d="2">
+          <div class="who-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-5 4 4 8-8" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 8h4v4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h3>Real, lasting results</h3>
+          <p>Professional delivery across every major platform, with transparent progress and support that treats your growth as our mission.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="about-section faq-section">
+    <div class="wrap">
+      <div class="faq-head">
+        <h2 class="reveal">Frequently asked questions</h2>
+        <p class="reveal" data-d="1">Everything you need to know before placing your first <span data-brand-name>GrowVia</span> order.</p>
+      </div>
+      <div class="faq-list" id="faqList">
+        <div class="faq-item reveal">
+          <button class="faq-q">Loading FAQs…<span class="faq-icon"></span></button>
+          <div class="faq-a"><div class="faq-a__inner">This section updates from the admin panel.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="about-section">
+    <div class="wrap">
+      <div class="section-label reveal">Testimonials</div>
+      <h2 class="reveal" data-d="1" style="font-size:clamp(30px,4vw,46px);margin-bottom:40px;">Trusted by creators &amp; brands.</h2>
+    </div>
+    <div class="testi-marquee" id="testimonialsSection">
+      <div class="testi-track" id="testiTrack">
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p>Loading testimonials…</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer inside overlay -->
+  <footer class="footer" style="border-bottom:none">
+    <div class="wrap">
+      <div class="footer__bottom" style="border-top:none;padding-top:0;justify-content:center;text-align:center;">
+        <span>© 2025 GrowVia. All Rights Reserved. · Your Growth. Our Mission.</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ============ ORDER SUCCESS OVERLAY ============ -->
+<div class="order-success-overlay" id="orderSuccessOverlay" aria-hidden="true">
+  <div class="order-success-modal">
+    <div class="success-icon-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+    </div>
+    <h2>Order Received!</h2>
+    <p>Thank you! Your order has been received. Our team will reach out to you on WhatsApp shortly to confirm the details.</p>
+    <div class="success-order-id" id="successOrderId">Processing your order…</div>
+    <div class="success-actions">
+      <a href="https://wa.me/3143632195" class="success-wa-btn" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm4.52 14.03c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13s-.64.81-.78.97c-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31s-.86.85-.86 2.07c0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18z"/></svg>
+        Chat on WhatsApp
+      </a>
+      <button class="success-new-btn" id="successNewOrderBtn">Place Another Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FLOATING WHATSAPP BUTTON ============ -->
+<a href="https://wa.me/3143632195" class="wa-float" id="waFloat" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm4.52 14.03c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13s-.64.81-.78.97c-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31s-.86.85-.86 2.07c0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18z"/></svg>
+  <span>WhatsApp</span>
+</a>
+
+<!-- ============ FLOATING OFFER BANNER ============ -->
+<div class="floating-offer" id="floatingOffer">
+  <div class="floating-offer__header">
+    <span class="floating-offer__emoji">🔥</span>
+    <span class="floating-offer__badge">Special Offer</span>
+    <button class="floating-offer__close" id="floatingOfferClose" aria-label="Close offer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="floating-offer__content">
+    <div class="floating-offer__text" id="floatingOfferText">Special Offer Active!</div>
+    <div class="floating-offer__timer-wrap" id="floatingTimerWrap" style="display:none;">
+      <span class="floating-offer__timer-label">Ends in</span>
+      <span class="floating-offer__timer" id="floatingOfferTimer">--:--:--</span>
+    </div>
+    <a href="#order" class="floating-offer__cta" id="floatingOfferCta">Order Now →</a>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+{
+  "config": {
+    "allowSingleOrder": true,
+    "allowBulkOrder": true,
+    "offerActive": true,
+    "offerText": "go get it",
+    "brandName": "GrowVia",
+    "brandTagline": "Your Growth. Our Mission.",
+    "logoImageUrl": "",
+    "offerStart": "2026-05-31T01:37",
+    "offerEnd": "2026-06-01T01:37",
+    "themeColor": "blue",
+    "whatsappNumber": "923287621015"
+  },
+  "faqs": [],
+  "testimonials": [
+    {
+      "id": "t1",
+      "name": "Ayesha Khan",
+      "role": "Lifestyle Creator",
+      "text": "GrowVia felt completely different — professional, transparent and genuinely ethical. My engagement grew and the whole process was effortless.",
+      "image": "https://i.pravatar.cc/120?img=32",
+      "hidden": false
+    },
+    {
+      "id": "t2",
+      "name": "Marcus Reed",
+      "role": "Founder, Reed Media",
+      "text": "As an agency we needed a partner we could trust with client accounts. GrowVia's fraud protection and clear communication won us over instantly.",
+      "image": "https://i.pravatar.cc/120?img=33",
+      "hidden": false
+    },
+    {
+      "id": "t3",
+      "name": "Sara Yusuf",
+      "role": "Small Business Owner",
+      "text": "Fast, reliable and respectful of my values. The premium feel matches the quality of service — easily the best growth platform I've used.",
+      "image": "https://i.pravatar.cc/120?img=34",
+      "hidden": false
+    },
+    {
+      "id": "t4",
+      "name": "Daniyal Latif",
+      "role": "Music Artist",
+      "text": "Our TikTok took off after using GrowVia. The team kept me updated at every step and delivery was exactly as promised. Highly recommend.",
+      "image": "https://i.pravatar.cc/120?img=35",
+      "hidden": false
+    },
+    {
+      "id": "t5",
+      "name": "Hira Naveed",
+      "role": "E-commerce Brand",
+      "text": "Clean, premium and trustworthy. No spam, no shady tactics — just real growth that aligned with our brand's values. Exactly what we needed.",
+      "image": "https://i.pravatar.cc/120?img=36",
+      "hidden": false
+    }
+  ],
+  "admins": [
+    {
+      "username": "admin",
+      "password": "GrowViaAdmin123",
+      "role": "Admin"
+    },
+    {
+      "username": "manager",
+      "password": "manager123",
+      "role": "Manager"
+    },
+    {
+      "username": "employee",
+      "password": "employee123",
+      "role": "Employee"
+    }
+  ],
+  "orders": [
+    {
+      "id": "GRV-300526-7191",
+      "createdAt": "2026-05-30T09:01:38.660Z",
+      "name": "qayyom",
+      "whatsapp": "000000000000000",
+      "mode": "single",
+      "quality": "organic",
+      "platform": "Instagram",
+      "service": "Followers",
+      "qty": "100000",
+      "link": "https://www.pinterest.com/",
+      "notes": "de de",
+      "bulkItems": [],
+      "bulkText": "",
+      "totalPrice": "₨112,000",
+      "status": "pending"
+    },
+    {
+      "id": "GRV-300526-2861",
+      "createdAt": "2026-05-30T05:34:13.818Z",
+      "name": "Farhan Ali",
+      "whatsapp": "03143632195",
+      "mode": "bulk",
+      "platform": "",
+      "service": "",
+      "qty": "",
+      "link": "",
+      "notes": "",
+      "bulkItems": [],
+      "bulkText": "Facebook — Followers — 10,000 — https://claude.ai/chat/63994032-2bf9-4919-82fc-200a6c73ad3d — ₨14,000\nTikTok — Views — 1,000,000 — https://claude.ai/chat/63994032-2bf9-4919-82fc-200a6c73ad3d — ₨202,000",
+      "totalPrice": "₨216,000",
+      "status": "processing"
+    },
+    {
+      "id": "GRV-300526-1345",
+      "createdAt": "2026-05-30T05:12:41.619Z",
+      "name": "Farhan Ali",
+      "whatsapp": "03143632195",
+      "mode": "single",
+      "platform": "Facebook",
+      "service": "Followers",
+      "qty": "10000",
+      "link": "https://www.pinterest.com/",
+      "notes": "",
+      "bulkItems": [],
+      "bulkText": "",
+      "totalPrice": "₨12,320",
+      "status": "completed"
+    }
+  ],
+  "pricing": {
+    "Instagram": {
+      "Followers": {
+        "organic": 1120,
+        "bot": 560
+      },
+      "Likes": {
+        "organic": 420,
+        "bot": 210
+      },
+      "Views": {
+        "organic": 224,
+        "bot": 112
+      },
+      "Comments": {
+        "organic": 2240,
+        "bot": 1120
+      },
+      "Shares": {
+        "organic": 840,
+        "bot": 420
+      },
+      "Saves": {
+        "organic": 560,
+        "bot": 280
+      },
+      "Reach": {
+        "organic": 280,
+        "bot": 140
+      }
+    },
+    "Facebook": {
+      "Followers": {
+        "organic": 1400,
+        "bot": 700
+      },
+      "Likes": {
+        "organic": 462,
+        "bot": 231
+      },
+      "Views": {
+        "organic": 246,
+        "bot": 123
+      },
+      "Comments": {
+        "organic": 2464,
+        "bot": 1232
+      },
+      "Shares": {
+        "organic": 924,
+        "bot": 462
+      },
+      "Reach": {
+        "organic": 308,
+        "bot": 154
+      }
+    },
+    "TikTok": {
+      "Followers": {
+        "organic": 1008,
+        "bot": 504
+      },
+      "Likes": {
+        "organic": 378,
+        "bot": 189
+      },
+      "Views": {
+        "organic": 202,
+        "bot": 101
+      },
+      "Comments": {
+        "organic": 2016,
+        "bot": 1008
+      },
+      "Shares": {
+        "organic": 756,
+        "bot": 378
+      },
+      "Saves": {
+        "organic": 504,
+        "bot": 252
+      }
+    },
+    "YouTube": {
+      "Subscribers": {
+        "organic": 2688,
+        "bot": 1344
+      },
+      "Views": {
+        "organic": 358,
+        "bot": 179
+      },
+      "Likes": {
+        "organic": 672,
+        "bot": 336
+      },
+      "Comments": {
+        "organic": 3584,
+        "bot": 1792
+      },
+      "Watch Hours": {
+        "organic": 5376,
+        "bot": 2688
+      },
+      "Shares": {
+        "organic": 1344,
+        "bot": 672
+      }
+    },
+    "X (Twitter)": {
+      "Followers": {
+        "organic": 1344,
+        "bot": 672
+      },
+      "Likes": {
+        "organic": 504,
+        "bot": 252
+      },
+      "Views": {
+        "organic": 269,
+        "bot": 135
+      },
+      "Reposts": {
+        "organic": 1008,
+        "bot": 504
+      },
+      "Comments": {
+        "organic": 2688,
+        "bot": 1344
+      }
+    },
+    "LinkedIn": {
+      "Followers": {
+        "organic": 2520,
+        "bot": 1260
+      },
+      "Connections": {
+        "organic": 2016,
+        "bot": 1008
+      },
+      "Likes": {
+        "organic": 756,
+        "bot": 378
+      },
+      "Comments": {
+        "organic": 4032,
+        "bot": 2016
+      },
+      "Shares": {
+        "organic": 1512,
+        "bot": 756
+      }
+    },
+    "Pintrest": {
+      "dfa": {
+        "organic": 2214,
+        "bot": 111
+      }
+    }
+  },
+  "platformLogos": {
+    "pintrest": "https://images.seeklogo.com/logo-png/15/2/pinterest-badge-logo-png_seeklogo-157893.png"
+  }
+}
