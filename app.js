@@ -16,9 +16,16 @@
       var next = cur === "dark" ? "light" : "dark";
       root.setAttribute("data-theme", next);
       localStorage.setItem("growvia-theme", next);
+      if (typeof window.applyBrandLogos === 'function') window.applyBrandLogos();
     });
   }
   document.querySelectorAll("[data-theme-toggle]").forEach(bindThemeToggle);
+
+  /* ---------- THEME-AWARE LOGO URL ---------- */
+  window.getThemeLogoUrl = function () {
+    var theme = root.getAttribute("data-theme") || "dark";
+    return theme === "light" ? "Logo.png?v=3" : "White%20Logo.png?v=3";
+  };
 
   /* ---------- DISCLAIMER (marquee) close ---------- */
   (function () {
@@ -172,6 +179,17 @@
   var PHONE = "3143632195"; // default; overridden by config
 
   function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ""; }
+
+  // Normalize Pakistani phone numbers to +92XXXXXXXXXX
+  // Accepts: 0312..., 312..., 92312..., +92312..., with spaces/dashes
+  function normalizePkPhone(raw) {
+    var digits = String(raw || "").replace(/\D/g, "");
+    if (!digits) return "";
+    if (digits.indexOf("0092") === 0) digits = digits.slice(4);
+    else if (digits.indexOf("92") === 0) digits = digits.slice(2);
+    else if (digits.charAt(0) === "0") digits = digits.slice(1);
+    return "+92" + digits;
+  }
 
   function flagError(el, bad) {
     if (bad) el.classList.add("field-error"); else el.classList.remove("field-error");
@@ -422,28 +440,25 @@
     if (siteLogoMark) { siteLogoMark.textContent = bName.charAt(0).toUpperCase(); }
     if (overlayLogoText) { overlayLogoText.textContent = bName; }
     if (overlayLogoMark) { overlayLogoMark.textContent = bName.charAt(0).toUpperCase(); }
-    
-    var favLink = document.getElementById('favicon');
-    if (favLink && appConfig.logoImageUrl) {
-      favLink.href = appConfig.logoImageUrl;
-    }
-    
+
     var aboutOverlayLogoText = document.getElementById("aboutOverlayLogoText");
     var aboutOverlayLogoMark = document.getElementById("aboutOverlayLogoMark");
     if (aboutOverlayLogoText) { aboutOverlayLogoText.textContent = bName; }
     if (aboutOverlayLogoMark) { aboutOverlayLogoMark.textContent = bName.charAt(0).toUpperCase(); }
 
+    var activeLogoUrl = appConfig.logoImageUrl || (typeof window.getThemeLogoUrl === 'function' ? window.getThemeLogoUrl() : '');
+
     function updateLogoElement(linkEl, textEl, markEl, prefixId) {
       if (!linkEl) return;
       var logoImage = document.getElementById(prefixId + 'LogoImage');
-      if (appConfig.logoImageUrl) {
+      if (activeLogoUrl) {
         if (!logoImage) {
           logoImage = document.createElement('img');
           logoImage.id = prefixId + 'LogoImage';
           logoImage.className = 'logo__image';
           linkEl.insertBefore(logoImage, linkEl.firstChild);
         }
-        logoImage.src = appConfig.logoImageUrl;
+        logoImage.src = activeLogoUrl;
         logoImage.alt = bName;
         textEl && (textEl.style.display = 'none');
         markEl && (markEl.style.display = 'none');
@@ -500,12 +515,12 @@
     // ── Loader mark (if still visible)
     var loaderMark = document.querySelector('.loader-mark');
     if (loaderMark) {
-      if (appConfig.logoImageUrl) {
+      if (activeLogoUrl) {
         var loaderImg = loaderMark.querySelector('img');
         if (!loaderImg) {
-          loaderMark.innerHTML = '<img src="' + appConfig.logoImageUrl + '" alt="' + bName + '" />';
+          loaderMark.innerHTML = '<img src="' + activeLogoUrl + '" alt="' + bName + '" />';
         } else {
-          loaderImg.src = appConfig.logoImageUrl;
+          loaderImg.src = activeLogoUrl;
         }
       } else {
         var letters = bName.split('');
@@ -538,6 +553,9 @@
     window._growviaBrandName    = bName;
     window._growviaBrandTagline = bTag;
   }
+
+  // Expose for theme-toggle reactive re-apply
+  window.applyBrandLogos = applyConfigState;
 
   var _fetchOpts = { cache: 'no-store' };
 
@@ -588,6 +606,14 @@
   function fmt(n) { return fmtPKR(n); }
   function fmtAlt(n) { return fmtUSD(n); }
 
+  /* ── Promo state ── */
+  var appliedPromo = null; // { code, type, value }
+  function computeDiscount(subtotal) {
+    if (!appliedPromo || !subtotal) return 0;
+    if (appliedPromo.type === 'percent') return Math.round(subtotal * (Number(appliedPromo.value) || 0) / 100);
+    return Math.min(subtotal, Math.round(Number(appliedPromo.value) || 0));
+  }
+
   var orderQuality = ""; // set when user selects from dropdown
 
   function computePriceFor(platform, service, qty, quality) {
@@ -625,12 +651,22 @@
     priceBox.classList.add("show");
     rateEl.textContent = fmtPKR(p.rate) + " / 1,000";
     if (p.qty > 0) {
-      totalEl.textContent = fmtPKR(p.total);
-      altEl.textContent = "";
+      var subtotal = p.total;
+      var discount = computeDiscount(subtotal);
+      if (discount > 0) {
+        totalEl.textContent = fmtPKR(subtotal - discount);
+        altEl.textContent = '−' + fmtPKR(discount) + ' off';
+        altEl.style.color = '#19b591';
+      } else {
+        totalEl.textContent = fmtPKR(subtotal);
+        altEl.textContent = "";
+        altEl.style.color = "";
+      }
       priceHint.textContent = p.qty.toLocaleString("en-US") + " × " + val("f_service");
     } else {
       totalEl.textContent = "—";
       altEl.textContent = "";
+      altEl.style.color = "";
       priceHint.textContent = "Enter a quantity";
     }
   }
@@ -894,7 +930,12 @@
   function updateBulkSummary() {
     if (!bulkTotalEl) return;
     var total = computeBulkTotal();
-    bulkTotalEl.textContent = total ? fmtPKR(total) : "—";
+    var discount = computeDiscount(total);
+    if (total && discount > 0) {
+      bulkTotalEl.innerHTML = fmtPKR(total - discount) + ' <span style="color:#19b591;font-size:0.7em;font-weight:600;">(−' + fmtPKR(discount) + ')</span>';
+    } else {
+      bulkTotalEl.textContent = total ? fmtPKR(total) : "—";
+    }
     if (bulkPriceSummary) bulkPriceSummary.classList.toggle("show", total > 0);
   }
 
@@ -1109,11 +1150,19 @@
     var old = label.textContent;
     label.textContent = "Submitting Order…";
 
+    // Pre-compute subtotal for promo handling
+    var preSubtotal = orderMode === "single"
+      ? (singlePrice ? Math.round(singlePrice.total) : 0)
+      : bulkTotalVal;
+
     // Build structured order payload
     var orderPayload = {
       id: orderId,
+      website: val("f_website"), // honeypot — must be empty
+      promoCode: appliedPromo ? appliedPromo.code : "",
+      subtotalAmount: preSubtotal,
       name: val("f_name"),
-      whatsapp: val("f_whatsapp"),
+      whatsapp: normalizePkPhone(val("f_whatsapp")),
       mode: orderMode,
       quality: (document.getElementById("f_quality_select") ? document.getElementById("f_quality_select").value : orderQuality) || "organic",
       platform: orderMode === "single" ? val("f_platform") : "",
@@ -1122,7 +1171,11 @@
       link: orderMode === "single" ? val("f_link") : "",
       notes: notes,
       bulkText: orderMode === "bulk" ? bList.value.trim() : "",
-      totalPrice: orderMode === "single" ? (singlePrice ? fmtPKR(singlePrice.total) : "—") : fmtPKR(bulkTotalVal)
+      totalPrice: (function(){
+        var sub = orderMode === "single" ? (singlePrice ? singlePrice.total : 0) : bulkTotalVal;
+        var disc = computeDiscount(sub);
+        return sub ? fmtPKR(Math.max(0, sub - disc)) : "—";
+      })()
     };
 
     fetch('/api/orders', {
@@ -1149,6 +1202,8 @@
       
       if (successOrderId) successOrderId.textContent = "Order ID: " + orderId;
       if (successWaBtn) successWaBtn.href = url;
+      var successTrackBtn = document.getElementById("successTrackBtn");
+      if (successTrackBtn) successTrackBtn.href = "/track?id=" + encodeURIComponent(orderId);
       if (successOverlay) successOverlay.classList.add("show");
     })
     .catch(function () {
@@ -1157,6 +1212,67 @@
       window.open(url, "_blank");
     });
   });
+
+  /* ── Promo apply/clear ── */
+  (function() {
+    var promoInput  = document.getElementById("f_promo");
+    var applyBtn    = document.getElementById("applyPromoBtn");
+    var clearBtn    = document.getElementById("clearPromoBtn");
+    var feedback    = document.getElementById("promoFeedback");
+    if (!promoInput || !applyBtn) return;
+
+    function setFeedback(msg, kind) {
+      if (!feedback) return;
+      feedback.textContent = msg || "";
+      feedback.className = "promo-feedback" + (kind ? " " + kind : "");
+    }
+
+    function clearPromo() {
+      appliedPromo = null;
+      promoInput.value = "";
+      promoInput.disabled = false;
+      clearBtn.style.display = "none";
+      applyBtn.style.display = "";
+      setFeedback("");
+      updatePrice();
+      updateBulkSummary();
+    }
+
+    applyBtn.addEventListener("click", function() {
+      var code = (promoInput.value || "").trim().toUpperCase();
+      if (!code) { setFeedback("Please enter a code.", "muted"); return; }
+      applyBtn.disabled = true;
+      setFeedback("Checking…", "muted");
+      fetch("/api/promos/validate/" + encodeURIComponent(code), { cache: "no-store" })
+        .then(function(r) { return r.json().then(function(j) { return { ok: r.ok, body: j }; }); })
+        .then(function(res) {
+          applyBtn.disabled = false;
+          if (!res.ok || !res.body.valid) {
+            appliedPromo = null;
+            setFeedback(res.body.error || "Invalid or expired code.", "bad");
+            updatePrice(); updateBulkSummary();
+            return;
+          }
+          appliedPromo = { code: res.body.code, type: res.body.type, value: res.body.value };
+          var label = appliedPromo.type === 'percent' ? appliedPromo.value + '% off' : '₨' + appliedPromo.value.toLocaleString() + ' off';
+          setFeedback("✓ " + appliedPromo.code + " applied — " + label, "ok");
+          promoInput.value = appliedPromo.code;
+          promoInput.disabled = true;
+          clearBtn.style.display = "";
+          applyBtn.style.display = "none";
+          updatePrice(); updateBulkSummary();
+        })
+        .catch(function() {
+          applyBtn.disabled = false;
+          setFeedback("Network error. Try again.", "bad");
+        });
+    });
+
+    clearBtn.addEventListener("click", clearPromo);
+    promoInput.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") { e.preventDefault(); applyBtn.click(); }
+    });
+  })();
 
   // Bind close action for Success Overlay
   var successNewOrderBtn = document.getElementById("successNewOrderBtn");

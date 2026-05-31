@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GrowVia Admin — Dashboard</title>
   <meta name="description" content="GrowVia admin control panel for brand, offers, testimonials and FAQs." />
-  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%235468ff'/%3E%3Ctext y='.9em' x='5px' font-size='80' font-weight='bold' fill='%23fff' font-family='system-ui, sans-serif'%3EG%3C/text%3E%3C/svg%3E">
+  <link id="favicon" rel="icon" type="image/png" href="Icon.png?v=3">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -820,6 +820,26 @@
           <span class="nav-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>
         </button>
 
+        <button type="button" class="adm-tab-btn" data-tab="promos" id="navPromos">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
+            </svg>
+          </span>
+          <span class="nav-label">Promo Codes</span>
+          <span class="nav-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>
+        </button>
+
+        <button type="button" class="adm-tab-btn" data-tab="activity" id="navActivity">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </span>
+          <span class="nav-label">Activity Log</span>
+          <span class="nav-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>
+        </button>
+
         <button type="button" class="adm-tab-btn" data-tab="backup" id="navBackup">
           <span class="nav-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -985,6 +1005,38 @@
                 </div>
               </div>
               <div id="platformChart" style="display:grid;gap:10px;margin-top:4px;"></div>
+            </div>
+          </div>
+
+          <!-- 7-Day Revenue + Top Services Charts -->
+          <div class="adm-form-grid" style="margin-bottom:24px;">
+            <div class="adm-section">
+              <div class="adm-section-head">
+                <div class="adm-section-icon" style="background:rgba(61,255,160,0.1);color:#3dffa0;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="adm-section-title">Last 7 Days Revenue</div>
+                  <div class="adm-section-sub">Daily earned revenue (completed only)</div>
+                </div>
+              </div>
+              <div id="revenueChart" style="margin-top:8px;"></div>
+            </div>
+            <div class="adm-section">
+              <div class="adm-section-head">
+                <div class="adm-section-icon" style="background:rgba(167,139,250,0.12);color:#b08af6;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="adm-section-title">Top Services</div>
+                  <div class="adm-section-sub">Best-selling service / platform combos</div>
+                </div>
+              </div>
+              <div id="topServicesChart" style="display:grid;gap:10px;margin-top:4px;"></div>
             </div>
           </div>
 
@@ -1232,6 +1284,111 @@
             <div id="pricingAccordion" style="display:grid;gap:16px;">
               <!-- Loading -->
               <div class="adm-empty">Loading platform pricing…</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── PROMO CODES TAB ── -->
+        <section class="admin-tab" id="tab-promos">
+          <div class="adm-section">
+            <div class="adm-section-head">
+              <div class="adm-section-icon" style="background:rgba(255,208,102,0.12);color:#ffd066;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+              </div>
+              <div>
+                <div class="adm-section-title">Create Promo Code</div>
+                <div class="adm-section-sub">Set up flat or percent discounts. Customers enter the code in the order form to apply the discount live.</div>
+              </div>
+            </div>
+
+            <form id="promoForm" class="adm-form-grid" style="grid-template-columns:repeat(4,1fr);gap:14px;">
+              <div class="adm-field">
+                <label for="promoCode">Code <span style="color:#ff8a7a">*</span></label>
+                <input id="promoCode" class="adm-control" type="text" placeholder="e.g. WELCOME10" required style="text-transform:uppercase;letter-spacing:0.04em;" />
+              </div>
+              <div class="adm-field">
+                <label for="promoType">Type <span style="color:#ff8a7a">*</span></label>
+                <select id="promoType" class="adm-control" style="cursor:pointer;">
+                  <option value="percent">Percent (%)</option>
+                  <option value="flat">Flat (₨)</option>
+                </select>
+              </div>
+              <div class="adm-field">
+                <label for="promoValue">Value <span style="color:#ff8a7a">*</span></label>
+                <input id="promoValue" class="adm-control" type="number" min="1" placeholder="e.g. 10" required />
+              </div>
+              <div class="adm-field">
+                <label for="promoExpiry">Expiry (optional)</label>
+                <input id="promoExpiry" class="adm-control" type="date" />
+              </div>
+              <div class="adm-field">
+                <label for="promoMaxUses">Max Uses (0 = unlimited)</label>
+                <input id="promoMaxUses" class="adm-control" type="number" min="0" placeholder="0" value="0" />
+              </div>
+              <div class="adm-btn-row" style="grid-column:1/-1;">
+                <button type="submit" class="adm-btn primary">
+                  <span class="shine"></span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M12 5v14M5 12h14"/></svg>
+                  Add Promo Code
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="adm-section">
+            <div class="adm-section-head">
+              <div class="adm-section-icon" style="background:rgba(238,240,247,0.12);color:#eef0f7;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/></svg>
+              </div>
+              <div>
+                <div class="adm-section-title">All Promo Codes</div>
+                <div class="adm-section-sub" id="promoCountLabel">Loading…</div>
+              </div>
+            </div>
+            <div class="adm-list" id="promoList"></div>
+          </div>
+        </section>
+
+        <!-- ── ACTIVITY LOG TAB ── -->
+        <section class="admin-tab" id="tab-activity">
+          <div class="adm-section">
+            <div class="adm-section-head" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+              <div style="display:flex;align-items:center;gap:14px;">
+                <div class="adm-section-icon" style="background:rgba(154,166,255,0.12);color:#9aa6ff;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="adm-section-title">Activity Log</div>
+                  <div class="adm-section-sub">Login and logout events for every admin / manager / employee account.</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" class="adm-btn secondary" id="activityRefreshBtn" style="gap:6px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  Refresh
+                </button>
+                <button type="button" class="adm-btn secondary" id="activityClearBtn" style="gap:6px;color:#ff8a7a;border-color:rgba(255,138,122,0.3);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                  Clear All
+                </button>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+              <div class="ccy-toggle" id="activityFilters" style="display:inline-flex;gap:4px;">
+                <button type="button" class="ccy-opt active" data-act-filter="all">All</button>
+                <button type="button" class="ccy-opt" data-act-filter="login">Logins</button>
+                <button type="button" class="ccy-opt" data-act-filter="logout">Logouts</button>
+              </div>
+              <input id="activitySearch" class="adm-control" type="search" placeholder="Search by username…" style="flex:1;min-width:200px;height:36px;font-size:13px;" />
+            </div>
+
+            <div class="adm-list" id="activityList">
+              <div class="adm-empty"><p>Loading activity log…</p></div>
             </div>
           </div>
         </section>
@@ -1796,13 +1953,20 @@
       faqs: 'Frequently Asked Questions',
       users: 'User Administration',
       accounts: 'Payment Accounts',
+      promos: 'Promo Codes',
+      activity: 'Activity Log',
       backup: 'System Database Backup'
     };
     
     function setActiveTab(tab) {
-      if (currentUserRole === 'Employee' || currentUserRole === 'Manager') {
-        var adminOnlyTabs = ['brand', 'offer', 'testimonials', 'faqs', 'users'];
-        if (adminOnlyTabs.indexOf(tab) !== -1) {
+      if (currentUserRole === 'Employee') {
+        var employeeBlockedTabs = ['brand', 'offer', 'testimonials', 'faqs', 'users', 'activity', 'promos'];
+        if (employeeBlockedTabs.indexOf(tab) !== -1) {
+          tab = 'dashboard';
+        }
+      } else if (currentUserRole === 'Manager') {
+        var managerBlockedTabs = ['brand'];
+        if (managerBlockedTabs.indexOf(tab) !== -1) {
           tab = 'dashboard';
         }
       }
@@ -1946,10 +2110,12 @@
     function updateAdmLogo(name) {
       var mark = document.getElementById('admLogoMark');
       var text = document.getElementById('admLogoText');
-      if (logoImageUrl && logoImageUrl.value) {
-        if (mark) mark.innerHTML = '<img src="' + logoImageUrl.value + '" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:11px;" />';
-      } else {
-        if (mark) mark.textContent = name.charAt(0).toUpperCase();
+      var iconSrc = (logoImageUrl && logoImageUrl.value) ? logoImageUrl.value : 'Icon.png?v=3';
+      if (mark) {
+        mark.innerHTML = '<img src="' + iconSrc + '" alt="Logo" style="width:100%;height:100%;object-fit:contain;display:block;" />';
+        mark.style.background = 'transparent';
+        mark.style.boxShadow = 'none';
+        mark.style.borderRadius = '0';
       }
       if (text) text.textContent = name;
     }
@@ -1958,13 +2124,13 @@
 
     function applyRoleRestrictions(role) {
       currentUserRole = role;
-      if (role === 'Employee' || role === 'Manager') {
-        var adminOnlyTabs = ['brand', 'offer', 'testimonials', 'faqs', 'users'];
-        adminOnlyTabs.forEach(function(tabName) {
+      if (role === 'Employee') {
+        var employeeHiddenTabs = ['brand', 'offer', 'testimonials', 'faqs', 'users', 'activity', 'promos'];
+        employeeHiddenTabs.forEach(function(tabName) {
           var btn = document.querySelector('[data-tab="' + tabName + '"]');
           if (btn) btn.style.display = 'none';
         });
-        
+
         var acForm = document.getElementById('accountsForm');
         if (acForm) {
           acForm.querySelectorAll('input, textarea').forEach(function(input) {
@@ -1973,8 +2139,25 @@
           var saveBtn = acForm.querySelector('button[type="submit"]');
           if (saveBtn) saveBtn.style.display = 'none';
         }
+      } else if (role === 'Manager') {
+        var managerHiddenTabs = ['brand'];
+        managerHiddenTabs.forEach(function(tabName) {
+          var btn = document.querySelector('[data-tab="' + tabName + '"]');
+          if (btn) btn.style.display = 'none';
+        });
+
+        // Manager cannot create/assign Admin role
+        var newRoleSel = document.getElementById('newAdminRole');
+        if (newRoleSel) {
+          var adminOpt = newRoleSel.querySelector('option[value="Admin"]');
+          if (adminOpt) adminOpt.remove();
+        }
+
+        // Manager cannot clear the activity log
+        var clearLogBtn = document.getElementById('activityClearBtn');
+        if (clearLogBtn) clearLogBtn.style.display = 'none';
       }
-      
+
       if (role === 'Employee') {
         var lockBtn = document.getElementById('pricingLockBtn');
         if (lockBtn) lockBtn.style.display = 'none';
@@ -2215,6 +2398,8 @@
 
           renderStatusChart(pending, processing, completed, cancelled, total);
           renderPlatformChart(allOrders);
+          renderRevenueChart(allOrders);
+          renderTopServices(allOrders);
           renderReport(reportPeriod);
           renderDashboardOrders();
           renderOrdersTable();
@@ -2277,6 +2462,93 @@
             '<div style="height:100%;width:' + pct + '%;background:' + colors[i % colors.length] + ';border-radius:99px;transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1);"></div>' +
           '</div>' +
           '<span style="font-size:12px;font-weight:700;color:' + colors[i % colors.length] + ';text-align:right;">' + entry[1] + '</span>';
+        container.appendChild(row);
+      });
+    }
+
+    function renderRevenueChart(orders) {
+      var container = document.getElementById('revenueChart');
+      if (!container) return;
+      // Build 7-day bucket
+      var days = [];
+      var now = new Date(); now.setHours(0,0,0,0);
+      for (var i = 6; i >= 0; i--) {
+        var d = new Date(now); d.setDate(d.getDate() - i);
+        days.push({ date: d, label: d.toLocaleDateString('en-GB', { weekday:'short' }), full: d.toLocaleDateString('en-GB', { day:'2-digit', month:'short' }), rev: 0 });
+      }
+      orders.forEach(function(o) {
+        if (o.status !== 'completed') return;
+        var d = new Date(o.createdAt);
+        d.setHours(0,0,0,0);
+        var diff = Math.round((now - d) / 86400000);
+        if (diff >= 0 && diff <= 6) {
+          var v = parseInt(String(o.totalPrice || '0').replace(/[^\d]/g, ''), 10);
+          days[6 - diff].rev += isNaN(v) ? 0 : v;
+        }
+      });
+      var max = days.reduce(function(m, x) { return Math.max(m, x.rev); }, 0);
+      var totalWeekRev = days.reduce(function(s, x) { return s + x.rev; }, 0);
+      if (!max) {
+        container.innerHTML = '<p style="font-size:13px;color:rgba(169,174,194,0.4);text-align:center;padding:24px 0;">No completed revenue in the last 7 days.</p>';
+        return;
+      }
+      var bars = days.map(function(d) {
+        var h = Math.max(4, Math.round((d.rev / max) * 130));
+        var hasValue = d.rev > 0;
+        return '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;min-width:0;" title="' + d.full + ' · ₨' + d.rev.toLocaleString() + '">' +
+          '<div style="font-size:10px;font-weight:700;color:' + (hasValue ? '#3dffa0' : 'rgba(169,174,194,0.3)') + ';">₨' + (d.rev >= 1000 ? Math.round(d.rev/1000) + 'k' : d.rev) + '</div>' +
+          '<div style="width:100%;height:' + h + 'px;background:' + (hasValue ? 'linear-gradient(180deg,#3dffa0,rgba(61,255,160,0.3))' : 'rgba(255,255,255,0.04)') + ';border-radius:6px 6px 0 0;transition:height 0.6s cubic-bezier(0.34,1.56,0.64,1);"></div>' +
+          '<div style="font-size:10.5px;font-weight:600;color:rgba(169,174,194,0.6);">' + d.label + '</div>' +
+        '</div>';
+      }).join('');
+      container.innerHTML =
+        '<div style="display:flex;align-items:flex-end;gap:6px;height:170px;padding:0 6px;">' + bars + '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px 0;border-top:1px solid rgba(255,255,255,0.06);margin-top:6px;">' +
+          '<span style="font-size:11px;color:rgba(169,174,194,0.5);">Last 7 days</span>' +
+          '<span style="font-size:13px;font-weight:800;color:#3dffa0;">Total: ₨' + totalWeekRev.toLocaleString() + '</span>' +
+        '</div>';
+    }
+
+    function renderTopServices(orders) {
+      var container = document.getElementById('topServicesChart');
+      if (!container) return;
+      var counts = {};
+      orders.forEach(function(o) {
+        if (o.mode === 'bulk') {
+          (o.bulkText || '').split('\n').filter(Boolean).forEach(function(line) {
+            var parts = line.split(/\s*—\s*/);
+            var key = (parts[0] || '').trim() + ' · ' + (parts[1] || '').trim();
+            if (key.trim() === '·') return;
+            counts[key] = (counts[key] || 0) + 1;
+          });
+        } else {
+          var key = (o.platform || '—') + ' · ' + (o.service || '—');
+          if (key === '— · —') return;
+          counts[key] = (counts[key] || 0) + 1;
+        }
+      });
+      var sorted = Object.entries(counts).sort(function(a,b){ return b[1]-a[1]; });
+      if (!sorted.length) {
+        container.innerHTML = '<p style="font-size:13px;color:rgba(169,174,194,0.4);text-align:center;padding:12px 0;">No services to rank yet.</p>';
+        return;
+      }
+      var max = sorted[0][1];
+      var colors = ['#b08af6','#3dffa0','#9aa6ff','#ffd066','#ff8a7a','#5468ff'];
+      container.innerHTML = '';
+      sorted.slice(0, 6).forEach(function(entry, i) {
+        var pct = Math.round((entry[1] / max) * 100);
+        var row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:1fr 32px;align-items:center;gap:10px;';
+        row.innerHTML =
+          '<div>' +
+            '<div style="font-size:12px;font-weight:600;color:rgba(169,174,194,0.9);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
+              '<span style="color:' + colors[i % colors.length] + ';font-weight:800;">#' + (i+1) + '</span>&nbsp; ' + entry[0] +
+            '</div>' +
+            '<div style="height:6px;background:rgba(255,255,255,0.05);border-radius:99px;overflow:hidden;">' +
+              '<div style="height:100%;width:' + pct + '%;background:' + colors[i % colors.length] + ';border-radius:99px;transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1);"></div>' +
+            '</div>' +
+          '</div>' +
+          '<span style="font-size:12px;font-weight:800;color:' + colors[i % colors.length] + ';text-align:right;">' + entry[1] + '</span>';
         container.appendChild(row);
       });
     }
@@ -2561,9 +2833,14 @@
         var waNum = o.whatsapp.replace(/\D/g, '');
         var waUrl = 'https://wa.me/' + waNum + '?text=' + encodeURIComponent(confirmMsg);
 
+        var sameCount = allOrders.filter(function(x) { return x.whatsapp === o.whatsapp; }).length;
+        var repeatBadge = sameCount > 1
+          ? '<span style="display:inline-block;font-size:9.5px;font-weight:800;color:#ffd066;background:rgba(255,208,102,0.14);padding:2px 7px;border-radius:5px;letter-spacing:0.06em;margin-left:6px;vertical-align:middle;" title="' + sameCount + ' orders by this customer">★ REPEAT × ' + sameCount + '</span>'
+          : '';
+
         tr.innerHTML = '<td><strong style="color:var(--accent-text);font-size:12px;">' + o.id + '</strong></td>' +
           '<td style="white-space:nowrap;">' + date + '</td>' +
-          '<td>' + o.name + '<div style="font-size:11px;color:var(--text-3);">' + o.notes + '</div></td>' +
+          '<td>' + o.name + repeatBadge + '<div style="font-size:11px;color:var(--text-3);">' + o.notes + '</div></td>' +
           '<td><a href="https://wa.me/' + waNum + '" target="_blank" style="color:#25d366;text-decoration:none;font-weight:700;">' + o.whatsapp + '</a></td>' +
           '<td style="text-transform:capitalize;">' + o.mode + '<br><span style="font-size:11px;color:' + (o.quality==='bot'?'#9aa6ff':'#3dffa0') + ';font-weight:700;">' + (o.quality==='bot'?'🚀 Basic':'⭐ Premium') + '</span></td>' +
           '<td>' + detailsText + '</td>' +
@@ -2774,6 +3051,62 @@
         body.appendChild(bulkWrap);
       }
 
+      // ── Customer history ──
+      var sameCustomer = allOrders.filter(function(x) { return x.whatsapp === o.whatsapp && x.id !== o.id; });
+      if (sameCustomer.length > 0) {
+        var totalSpent = sameCustomer.reduce(function(sum, x) {
+          var v = parseInt(String(x.totalPrice || '0').replace(/[^\d]/g, ''), 10);
+          return sum + (isNaN(v) ? 0 : v);
+        }, 0);
+        var histWrap = document.createElement('div');
+        histWrap.style.cssText = 'margin-bottom:14px;padding:14px 16px;border-radius:12px;background:linear-gradient(135deg,rgba(255,208,102,0.08),rgba(255,208,102,0.03));border:1px solid rgba(255,208,102,0.25);';
+        var histList = sameCustomer.slice(0, 5).map(function(x) {
+          var date = new Date(x.createdAt).toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
+          var statusBadge = '<span style="color:' + (x.status==='completed'?'#3dffa0':x.status==='cancelled'?'#ff8a7a':'#ffd066') + ';font-size:10px;font-weight:700;text-transform:uppercase;">' + x.status + '</span>';
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12.5px;border-bottom:1px solid rgba(255,255,255,0.05);">' +
+                   '<span style="color:#eef0f7;font-weight:600;font-family:\"Space Grotesk\",sans-serif;">' + x.id + '</span>' +
+                   '<span style="color:rgba(169,174,194,0.6);">' + date + '</span>' +
+                   '<span style="color:#3dffa0;font-weight:700;">' + (x.totalPrice || '—') + '</span>' +
+                   statusBadge +
+                 '</div>';
+        }).join('');
+        histWrap.innerHTML =
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">' +
+            '<div style="display:flex;align-items:center;gap:8px;">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="#ffd066" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>' +
+              '<span style="font-size:12px;font-weight:800;color:#ffd066;letter-spacing:0.08em;text-transform:uppercase;">Repeat Customer · ' + (sameCustomer.length + 1) + ' total orders</span>' +
+            '</div>' +
+            '<span style="font-size:13px;color:#eef0f7;"><strong style="color:#3dffa0;">₨' + totalSpent.toLocaleString() + '</strong> spent before</span>' +
+          '</div>' +
+          '<div>' + histList + '</div>' +
+          (sameCustomer.length > 5 ? '<div style="margin-top:6px;font-size:11px;color:rgba(169,174,194,0.5);text-align:center;">+ ' + (sameCustomer.length - 5) + ' more</div>' : '');
+        body.appendChild(histWrap);
+      }
+
+      // ── Notify customer on WhatsApp ──
+      var notifyRow = document.createElement('div');
+      notifyRow.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;';
+      var notifyOptions = [
+        { label: 'Order Received',  status: 'pending',    color: '#d97706' },
+        { label: 'Processing',      status: 'processing', color: '#9aa6ff' },
+        { label: 'Completed',       status: 'completed',  color: '#3dffa0' },
+        { label: 'Custom Update',   status: 'custom',     color: '#eef0f7' }
+      ];
+      notifyOptions.forEach(function(opt) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'adm-btn secondary';
+        btn.style.cssText = 'gap:6px;height:38px;font-size:12px;color:' + opt.color + ';border-color:' + opt.color + '33;background:' + opt.color + '15;';
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2z"/></svg>' + opt.label;
+        btn.addEventListener('click', function() { notifyCustomer(o, opt.status); });
+        notifyRow.appendChild(btn);
+      });
+      var notifyLabel = document.createElement('div');
+      notifyLabel.style.cssText = 'font-size:10px;font-weight:800;color:rgba(169,174,194,0.6);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;';
+      notifyLabel.textContent = 'Send WhatsApp Update to Customer';
+      body.appendChild(notifyLabel);
+      body.appendChild(notifyRow);
+
       // ── Invoice button ──
       var invoiceBtn = document.createElement('button');
       invoiceBtn.type = 'button';
@@ -2786,6 +3119,25 @@
       orderDetailModal.style.display = 'flex';
     }
 
+    function notifyCustomer(o, statusKey) {
+      var bName = (document.getElementById('brandName') && document.getElementById('brandName').value) || 'GrowVia';
+      var trackUrl = window.location.origin + '/track?id=' + encodeURIComponent(o.id);
+      var firstName = (o.name || '').split(/\s+/)[0] || 'there';
+      var template;
+      if (statusKey === 'pending') {
+        template = 'Hi ' + firstName + ',\n\nThank you for your order with ' + bName + '!\n\nYour Order ID: ' + o.id + '\nStatus: *Order Received*\n\nWe will start processing shortly. Track here: ' + trackUrl;
+      } else if (statusKey === 'processing') {
+        template = 'Hi ' + firstName + ',\n\nGood news — your ' + bName + ' order is now *Processing*.\n\nOrder ID: ' + o.id + '\n\nWe will notify you the moment delivery is complete. Track here: ' + trackUrl;
+      } else if (statusKey === 'completed') {
+        template = 'Hi ' + firstName + ',\n\nYour ' + bName + ' order is *Completed* ✅\n\nOrder ID: ' + o.id + '\nTotal: ' + o.totalPrice + '\n\nThank you for choosing us! If you have any questions, just reply to this message.';
+      } else {
+        template = 'Hi ' + firstName + ',\n\nQuick update on your ' + bName + ' order ' + o.id + ':\n\n';
+      }
+      var waNum = (o.whatsapp || '').replace(/\D/g, '');
+      var url = 'https://wa.me/' + waNum + '?text=' + encodeURIComponent(template);
+      window.open(url, '_blank', 'noopener');
+    }
+
     if (orderDetailClose) orderDetailClose.addEventListener('click', function(){ orderDetailModal.style.display='none'; });
     if (orderDetailModal) orderDetailModal.addEventListener('click', function(e){ if(e.target===orderDetailModal) orderDetailModal.style.display='none'; });
     document.addEventListener('keydown', function(e){ if(e.key==='Escape' && orderDetailModal && orderDetailModal.style.display==='flex') orderDetailModal.style.display='none'; });
@@ -2794,8 +3146,10 @@
     function generateInvoice(o) {
       var bName = (document.getElementById('brandName') && document.getElementById('brandName').value) || 'GrowVia';
       var bTag  = (document.getElementById('brandTagline') && document.getElementById('brandTagline').value) || 'Your Growth. Our Mission.';
+      var brandLogoSrc = (logoImageUrl && logoImageUrl.value) ? logoImageUrl.value : 'White%20Logo.png?v=3';
+      var watermarkSrc = (logoImageUrl && logoImageUrl.value) ? logoImageUrl.value : 'Icon.png?v=3';
       var ac = _acData || {};
-      var jc = ac.jazzcash || {}; var ep = ac.easypaisa || {}; var sp = ac.sadapay || {}; var np = ac.nayapay || {};
+      var jc = ac.jazzcash || {}; var ep = ac.easypaisa || {}; var sp = ac.sadapay || {}; var np = ac.nayapay || {}; var bk = ac.bank || {};
       var invoiceDate = new Date(o.createdAt).toLocaleDateString('en-GB', { day:'2-digit', month:'long', year:'numeric' });
       var qual = o.quality==='bot' ? 'Basic' : 'Premium';
       var statusColor = o.status==='completed'?'#16a34a':o.status==='cancelled'?'#dc2626':'#d97706';
@@ -2810,7 +3164,7 @@
           '<td style="padding:13px 16px;border-bottom:1px solid #eef0f6;text-align:center;color:#555;">'+Number(o.qty||0).toLocaleString()+'</td>' +
           '<td style="padding:13px 16px;border-bottom:1px solid #eef0f6;text-align:right;font-weight:700;color:#1a1b2e;">'+o.totalPrice+'</td>' +
           '</tr>';
-        if (o.link) itemRows += '<tr><td colspan="4" style="padding:8px 16px;background:#fafbff;font-size:11.5px;color:#6b7280;border-bottom:1px solid #eef0f6;">🔗 ' + o.link + '</td></tr>';
+        if (o.link) itemRows += '<tr><td colspan="4" style="padding:8px 16px;background:#fafbff;font-size:11.5px;color:#6b7280;border-bottom:1px solid #eef0f6;word-break:break-all;">Link: ' + o.link + '</td></tr>';
       } else {
         (o.bulkText||'').split('\n').filter(Boolean).forEach(function(line, i) {
           var parts = line.split(/\s*—\s*/);
@@ -2825,59 +3179,95 @@
         });
       }
 
-      // Payment section
-      var payRows = '';
-      if (jc.number) payRows += '<tr><td style="padding:8px 0;color:#374151;width:130px;font-weight:600;">📱 JazzCash</td><td style="padding:8px 0;color:#374151;">'+jc.number+(jc.name?' &nbsp;·&nbsp; '+jc.name:'')+'</td></tr>';
-      if (ep.number) payRows += '<tr><td style="padding:8px 0;color:#374151;font-weight:600;">💚 EasyPaisa</td><td style="padding:8px 0;color:#374151;">'+ep.number+(ep.name?' &nbsp;·&nbsp; '+ep.name:'')+'</td></tr>';
-      if (sp.number) payRows += '<tr><td style="padding:8px 0;color:#374151;font-weight:600;">⚫ SadaPay</td><td style="padding:8px 0;color:#374151;">'+sp.number+(sp.name?' &nbsp;·&nbsp; '+sp.name:'')+'</td></tr>';
-      if (np.number) payRows += '<tr><td style="padding:8px 0;color:#374151;font-weight:600;">🍊 NayaPay</td><td style="padding:8px 0;color:#374151;">'+np.number+(np.name?' &nbsp;·&nbsp; '+np.name:'')+'</td></tr>';
-      if (ac.other) payRows += '<tr><td colspan="2" style="padding:8px 0;color:#374151;">'+ac.other+'</td></tr>';
+      // Payment methods — clean structured rows, no emojis
+      function payCard(label, line1, line2) {
+        return '<div class="pay-card">' +
+          '<div class="pay-card-label">'+label+'</div>' +
+          '<div class="pay-card-line">'+line1+'</div>' +
+          (line2 ? '<div class="pay-card-sub">'+line2+'</div>' : '') +
+          '</div>';
+      }
+      var payCards = '';
+      if (jc.number) payCards += payCard('JazzCash', jc.number, jc.name || '');
+      if (ep.number) payCards += payCard('EasyPaisa', ep.number, ep.name || '');
+      if (sp.number) payCards += payCard('SadaPay', sp.number, sp.name || '');
+      if (np.number) payCards += payCard('NayaPay', np.number, np.name || '');
+      if (bk.accountNumber) {
+        var bkSub = [bk.accountTitle, bk.bankName, bk.iban ? 'IBAN: ' + bk.iban : ''].filter(Boolean).join(' &nbsp;·&nbsp; ');
+        payCards += payCard('Bank Transfer', bk.accountNumber, bkSub);
+      }
+      var paySection = '';
+      if (payCards || ac.other) {
+        paySection = '<div class="section" style="padding-top:0;">' +
+          '<div class="pay-box">' +
+            '<div class="pay-title">Payment Methods</div>' +
+            (payCards ? '<div class="pay-grid">'+payCards+'</div>' : '') +
+            (ac.other ? '<div class="pay-other">'+ac.other+'</div>' : '') +
+          '</div></div>';
+      }
 
       var css = '*{margin:0;padding:0;box-sizing:border-box;}' +
         'body{font-family:"Segoe UI",Arial,sans-serif;background:#f5f6fa;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
-        '.page{max-width:700px;margin:0 auto;background:#fff;box-shadow:0 4px 40px rgba(0,0,0,0.1);}' +
-        '.hdr{background:linear-gradient(135deg,#5468ff 0%,#8a5cf6 100%);padding:36px 44px 32px;color:#fff;}' +
-        '.hdr-inner{display:flex;justify-content:space-between;align-items:flex-start;}' +
-        '.brand-name{font-size:28px;font-weight:900;letter-spacing:-0.02em;}' +
-        '.brand-tag{font-size:13px;opacity:0.75;margin-top:3px;}' +
-        '.inv-label{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;opacity:0.65;margin-bottom:4px;}' +
-        '.inv-id{font-size:22px;font-weight:800;}' +
-        '.meta{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #eef0f6;}' +
+        '.page{position:relative;max-width:740px;margin:0 auto;background:#fff;box-shadow:0 4px 40px rgba(0,0,0,0.1);overflow:hidden;}' +
+        '.watermark{position:absolute;top:50%;left:50%;width:560px;height:560px;transform:translate(-50%,-50%) rotate(-45deg);opacity:0.05;pointer-events:none;z-index:0;background-repeat:no-repeat;background-position:center;background-size:contain;}' +
+        '.content{position:relative;z-index:1;}' +
+        '.hdr{background:linear-gradient(135deg,#0f1226 0%,#1f2455 50%,#3b2f86 100%);padding:36px 44px 32px;color:#fff;}' +
+        '.hdr-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;}' +
+        '.hdr-brand{display:flex;align-items:center;gap:14px;}' +
+        '.hdr-logo{height:54px;max-width:220px;width:auto;object-fit:contain;display:block;}' +
+        '.brand-meta{display:flex;flex-direction:column;}' +
+        '.brand-tag{font-size:12px;opacity:0.7;margin-top:4px;letter-spacing:0.02em;}' +
+        '.inv-block{text-align:right;}' +
+        '.inv-label{font-size:10px;text-transform:uppercase;letter-spacing:0.14em;opacity:0.7;margin-bottom:6px;}' +
+        '.inv-id{font-size:20px;font-weight:800;letter-spacing:0.01em;}' +
+        '.meta{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #eef0f6;background:#fff;}' +
         '.meta-cell{padding:22px 44px;}' +
         '.meta-cell+.meta-cell{border-left:1px solid #eef0f6;}' +
-        '.lbl{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;}' +
+        '.lbl{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;}' +
         '.val{font-size:15px;font-weight:700;color:#1a1b2e;}' +
         '.val-sub{font-size:12.5px;color:#6b7280;margin-top:3px;}' +
-        'table{width:100%;border-collapse:collapse;}' +
+        'table{width:100%;border-collapse:collapse;background:transparent;}' +
         'thead tr{background:#f8f9fc;}' +
         'th{padding:11px 16px;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:0.07em;color:#9ca3af;font-weight:700;}' +
         'th:last-child{text-align:right;}' +
-        '.total-box{background:#f8f9fc;border-radius:12px;padding:18px 22px;width:240px;margin-left:auto;}' +
+        '.total-box{background:#f8f9fc;border-radius:12px;padding:18px 22px;width:260px;margin-left:auto;border:1px solid #eef0f6;}' +
         '.total-row{display:flex;justify-content:space-between;font-size:13px;color:#6b7280;margin-bottom:9px;}' +
-        '.total-final{display:flex;justify-content:space-between;font-size:17px;font-weight:800;color:#5468ff;border-top:2px solid #e2e6f4;padding-top:11px;}' +
-        '.pay-box{background:#eff6ff;border:1px solid #dbeafe;border-radius:12px;padding:18px 22px;}' +
-        '.pay-title{font-size:10.5px;font-weight:800;color:#1e40af;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:12px;}' +
-        '.footer{background:#f8f9fc;text-align:center;padding:18px 44px;font-size:12px;color:#9ca3af;}' +
-        '.section{padding:26px 44px;}' +
-        '@media print{body{background:#fff;}@page{margin:15mm;size:A4;}}';
+        '.total-final{display:flex;justify-content:space-between;font-size:18px;font-weight:800;color:#1f2455;border-top:2px solid #e2e6f4;padding-top:11px;}' +
+        '.pay-box{background:#fafbff;border:1px solid #e6e9f5;border-radius:14px;padding:20px 24px;}' +
+        '.pay-title{font-size:11px;font-weight:800;color:#1f2455;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:14px;}' +
+        '.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}' +
+        '.pay-card{background:#fff;border:1px solid #eef0f6;border-radius:10px;padding:12px 14px;}' +
+        '.pay-card-label{font-size:10px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;}' +
+        '.pay-card-line{font-size:14px;font-weight:700;color:#1a1b2e;letter-spacing:0.01em;font-family:"Segoe UI",Arial,sans-serif;}' +
+        '.pay-card-sub{font-size:11.5px;color:#6b7280;margin-top:3px;}' +
+        '.pay-other{margin-top:12px;font-size:12.5px;color:#374151;background:#fff;border:1px solid #eef0f6;border-radius:10px;padding:10px 14px;}' +
+        '.footer{background:#f8f9fc;text-align:center;padding:18px 44px;font-size:12px;color:#6b7280;border-top:1px solid #eef0f6;}' +
+        '.section{padding:26px 44px;background:transparent;}' +
+        '@media print{body{background:#fff;}.page{box-shadow:none;}@page{margin:15mm;size:A4;}}';
 
-      var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Invoice — '+o.id+'</title><style>'+css+'</style></head><body>' +
+      var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Receipt — '+o.id+'</title><style>'+css+'</style></head><body>' +
         '<div class="page">' +
-          '<div class="hdr"><div class="hdr-inner"><div><div class="brand-name">'+bName+'</div><div class="brand-tag">'+bTag+'</div></div><div style="text-align:right;"><div class="inv-label">Receipt / Invoice</div><div class="inv-id">'+o.id+'</div></div></div></div>' +
-          '<div class="meta"><div class="meta-cell"><div class="lbl">Billed To</div><div class="val">'+o.name+'</div><div class="val-sub">WhatsApp: '+o.whatsapp+'</div></div>' +
-          '<div class="meta-cell"><div class="lbl">Date &amp; Status</div><div class="val">'+invoiceDate+'</div><div class="val-sub">Status: <strong style="color:'+statusColor+';">'+o.status.toUpperCase()+'</strong> &nbsp;·&nbsp; '+qual+'</div></div></div>' +
-          '<div class="section"><table><thead><tr><th>Service / Item</th><th style="text-align:center;">Quality</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>'+itemRows+'</tbody></table>' +
-          '<div style="margin-top:18px;"><div class="total-box"><div class="total-row"><span>Subtotal</span><span>'+o.totalPrice+'</span></div><div class="total-final"><span>Total</span><span>'+o.totalPrice+'</span></div></div></div></div>' +
-          (payRows ? '<div class="section" style="padding-top:0;"><div class="pay-box"><div class="pay-title">💳 Payment Instructions</div><table>'+payRows+'</table></div></div>' : '') +
-          (o.notes ? '<div class="section" style="padding-top:0;font-size:13px;color:#6b7280;"><strong>Notes:</strong> '+o.notes+'</div>' : '') +
-          '<div class="footer">Thank you for choosing <strong>'+bName+'</strong>. Contact us on WhatsApp for any questions.</div>' +
+          '<div class="watermark" style="background-image:url(\''+watermarkSrc+'\');"></div>' +
+          '<div class="content">' +
+            '<div class="hdr"><div class="hdr-inner">' +
+              '<div class="hdr-brand"><img src="'+brandLogoSrc+'" alt="'+bName+'" class="hdr-logo" onerror="this.style.display=\'none\';" /><div class="brand-meta"><div class="brand-tag">'+bTag+'</div></div></div>' +
+              '<div class="inv-block"><div class="inv-label">Receipt</div><div class="inv-id">'+o.id+'</div></div>' +
+            '</div></div>' +
+            '<div class="meta"><div class="meta-cell"><div class="lbl">Billed To</div><div class="val">'+o.name+'</div><div class="val-sub">Phone No: '+o.whatsapp+'</div></div>' +
+            '<div class="meta-cell"><div class="lbl">Date &amp; Status</div><div class="val">'+invoiceDate+'</div><div class="val-sub">Status: <strong style="color:'+statusColor+';">'+o.status.toUpperCase()+'</strong> &nbsp;·&nbsp; '+qual+'</div></div></div>' +
+            '<div class="section"><table><thead><tr><th>Service / Item</th><th style="text-align:center;">Quality</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>'+itemRows+'</tbody></table>' +
+            '<div style="margin-top:18px;"><div class="total-box"><div class="total-row"><span>Subtotal</span><span>'+o.totalPrice+'</span></div><div class="total-final"><span>Total</span><span>'+o.totalPrice+'</span></div></div></div></div>' +
+            paySection +
+            (o.notes ? '<div class="section" style="padding-top:0;font-size:13px;color:#6b7280;"><strong>Notes:</strong> '+o.notes+'</div>' : '') +
+            '<div class="footer">Thank you for choosing <strong>'+bName+'</strong>. For any questions, contact us on WhatsApp.</div>' +
+          '</div>' +
         '</div></body></html>';
 
       var w = window.open('', '_blank', 'width=800,height=950,scrollbars=yes');
-      if (!w) { showToast('Please allow pop-ups to open the invoice.','error'); return; }
+      if (!w) { showToast('Please allow pop-ups to open the receipt.','error'); return; }
       w.document.write(html);
       w.document.close();
-      setTimeout(function(){ w.focus(); w.print(); }, 600);
+      setTimeout(function(){ w.focus(); w.print(); }, 700);
     }
 
     // CSV Export
@@ -3424,6 +3814,13 @@
     }
 
     function renderAdmins(items) {
+      // Manager can only see Managers and Employees
+      if (currentUserRole === 'Manager') {
+        items = items.filter(function(i) {
+          var r = i.role || 'Employee';
+          return r === 'Manager' || r === 'Employee';
+        });
+      }
       var el = document.getElementById('adminCountLabel');
       if (el) el.textContent = items.length + ' user' + (items.length !== 1 ? 's' : '') + ' saved';
       if (!adminList) return;
@@ -3498,7 +3895,7 @@
               '<select class="adm-control edit-role" style="height:34px;font-size:12px;cursor:pointer;">' +
                 '<option value="Manager"' + (item.role === 'Manager' ? ' selected' : '') + '>Manager</option>' +
                 '<option value="Employee"' + (item.role === 'Employee' ? ' selected' : '') + '>Employee</option>' +
-                '<option value="Admin"' + (item.role === 'Admin' ? ' selected' : '') + '>Admin</option>' +
+                (currentUserRole === 'Manager' ? '' : '<option value="Admin"' + (item.role === 'Admin' ? ' selected' : '') + '>Admin</option>') +
               '</select>' +
             '</div>' +
             '<div style="display:flex;align-items:flex-end;gap:6px;">' +
@@ -3671,6 +4068,223 @@
       acCopyStr(lines.filter(function(l){return l!==undefined;}));
     });
 
+    /* ── Promo Codes ── */
+    var promoForm = document.getElementById('promoForm');
+    var promoList = document.getElementById('promoList');
+
+    function fetchPromos() {
+      fetch('/api/promos', { cache:'no-store' })
+        .then(function(r) { return r.ok ? r.json() : []; })
+        .then(function(items) { renderPromos(items || []); })
+        .catch(function() { renderPromos([]); });
+    }
+
+    function renderPromos(items) {
+      var lbl = document.getElementById('promoCountLabel');
+      if (lbl) lbl.textContent = items.length + ' code' + (items.length !== 1 ? 's' : '') + ' saved';
+      if (!promoList) return;
+      if (!items.length) {
+        promoList.innerHTML = '<div class="adm-empty"><p>No promo codes yet. Add your first one above.</p></div>';
+        return;
+      }
+      promoList.innerHTML = '';
+      items.forEach(function(p) {
+        var card = document.createElement('div');
+        card.className = 'adm-list-item';
+        card.style.flexWrap = 'wrap';
+
+        var expired = p.expiry && new Date(p.expiry).getTime() < Date.now();
+        var soldOut = p.maxUses && (p.uses || 0) >= p.maxUses;
+        var statusLbl = p.disabled ? 'DISABLED' : (expired ? 'EXPIRED' : (soldOut ? 'USED UP' : 'ACTIVE'));
+        var statusColor = (p.disabled || expired || soldOut) ? '#ff8a7a' : '#3dffa0';
+
+        var valueStr = p.type === 'percent' ? (p.value + '% off') : ('₨' + Number(p.value).toLocaleString() + ' off');
+        var subParts = [valueStr];
+        if (p.expiry) subParts.push('Expires ' + new Date(p.expiry).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }));
+        subParts.push('Used: ' + (p.uses || 0) + (p.maxUses ? ' / ' + p.maxUses : ' / ∞'));
+
+        var body = document.createElement('div');
+        body.className = 'adm-list-item-body';
+        body.style.flex = '1';
+        body.style.minWidth = '0';
+        body.innerHTML =
+          '<div class="adm-list-item-name" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
+            '<span style="font-family:\"Space Grotesk\",sans-serif;letter-spacing:0.04em;">' + p.code + '</span>' +
+            '<span style="font-size:10px;font-weight:800;color:' + statusColor + ';background:' + statusColor + '18;padding:3px 8px;border-radius:6px;letter-spacing:0.08em;">' + statusLbl + '</span>' +
+          '</div>' +
+          '<div class="adm-list-item-sub" style="margin-top:4px;">' + subParts.join(' · ') + '</div>';
+
+        var actions = document.createElement('div');
+        actions.className = 'adm-list-item-actions';
+        actions.style.flexShrink = '0';
+
+        var toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'adm-icon-btn';
+        toggleBtn.title = p.disabled ? 'Enable' : 'Disable';
+        toggleBtn.style.color = p.disabled ? '#3dffa0' : '#ffd066';
+        toggleBtn.innerHTML = p.disabled
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/></svg>';
+        toggleBtn.addEventListener('click', function() {
+          fetch('/api/promos/' + p.id + '/toggle', { method:'PUT' })
+            .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+            .then(function() { fetchPromos(); showToast(p.disabled ? 'Promo enabled.' : 'Promo disabled.', 'success'); })
+            .catch(function() { showToast('Action failed.', 'error'); });
+        });
+
+        var delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'adm-icon-btn delete';
+        delBtn.title = 'Delete';
+        delBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+        delBtn.addEventListener('click', function() {
+          if (!confirm('Delete promo code ' + p.code + '?')) return;
+          fetch('/api/promos/' + p.id, { method:'DELETE' })
+            .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+            .then(function() { fetchPromos(); showToast('Promo deleted.', 'info'); })
+            .catch(function() { showToast('Delete failed.', 'error'); });
+        });
+
+        actions.appendChild(toggleBtn);
+        actions.appendChild(delBtn);
+
+        card.appendChild(body);
+        card.appendChild(actions);
+        promoList.appendChild(card);
+      });
+    }
+
+    if (promoForm) {
+      promoForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var body = {
+          code:    document.getElementById('promoCode').value,
+          type:    document.getElementById('promoType').value,
+          value:   document.getElementById('promoValue').value,
+          expiry:  document.getElementById('promoExpiry').value,
+          maxUses: document.getElementById('promoMaxUses').value
+        };
+        fetch('/api/promos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        })
+          .then(function(r) { return r.ok ? r.json() : r.json().then(function(j) { throw new Error(j.error || 'Failed'); }); })
+          .then(function() { promoForm.reset(); document.getElementById('promoMaxUses').value = '0'; fetchPromos(); showToast('Promo code added!', 'success'); })
+          .catch(function(e) { showToast(e.message || 'Failed to add code.', 'error'); });
+      });
+    }
+    var navPromosBtn = document.getElementById('navPromos');
+    if (navPromosBtn) navPromosBtn.addEventListener('click', fetchPromos);
+
+    /* ── Activity Log ── */
+    var allActivity = [];
+    var activityFilter = 'all';
+    var activitySearchQ = '';
+    var activityList = document.getElementById('activityList');
+
+    function fmtActivityTime(iso) {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return '—';
+      var diff = (Date.now() - d.getTime()) / 1000;
+      var rel;
+      if (diff < 60) rel = 'just now';
+      else if (diff < 3600) rel = Math.floor(diff / 60) + ' min ago';
+      else if (diff < 86400) rel = Math.floor(diff / 3600) + ' hr ago';
+      else if (diff < 604800) rel = Math.floor(diff / 86400) + ' d ago';
+      else rel = d.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
+      var abs = d.toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      return { rel: rel, abs: abs };
+    }
+
+    function renderActivity() {
+      if (!activityList) return;
+      var q = activitySearchQ.toLowerCase().trim();
+      var items = allActivity.filter(function(e) {
+        if (activityFilter !== 'all' && e.action !== activityFilter) return false;
+        if (q && (e.username || '').toLowerCase().indexOf(q) === -1) return false;
+        return true;
+      });
+      if (!items.length) {
+        activityList.innerHTML = '<div class="adm-empty"><p>No activity recorded yet.</p></div>';
+        return;
+      }
+      activityList.innerHTML = '';
+      items.forEach(function(e) {
+        var t = fmtActivityTime(e.at);
+        var actionColor = e.action === 'login' ? '#3dffa0' : '#ff8a7a';
+        var actionLabel = e.action === 'login' ? 'Logged in' : 'Logged out';
+        var actionIcon = e.action === 'login'
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>';
+        var roleBadge = e.role === 'Manager' ? '#ffd066' : (e.role === 'Employee' ? '#3dffa0' : '#9aa6ff');
+        var card = document.createElement('div');
+        card.className = 'adm-list-item';
+        card.innerHTML =
+          '<div class="adm-list-item-body" style="flex:1;min-width:0;">' +
+            '<div class="adm-list-item-name" style="display:flex;align-items:center;gap:8px;">' +
+              '<span style="color:' + actionColor + ';display:inline-flex;">' + actionIcon + '</span>' +
+              '<span>' + (e.username || 'unknown') + '</span>' +
+              '<span style="font-size:10.5px;font-weight:700;color:' + roleBadge + ';background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:0.06em;">' + (e.role || 'Unknown') + '</span>' +
+            '</div>' +
+            '<div class="adm-list-item-sub" style="margin-top:4px;">' +
+              '<span style="color:' + actionColor + ';font-weight:600;">' + actionLabel + '</span>' +
+              '<span style="color:rgba(169,174,194,0.5);"> · </span>' +
+              '<span title="' + t.abs + '">' + t.rel + '</span>' +
+              '<span style="color:rgba(169,174,194,0.4);font-size:11px;margin-left:8px;">' + t.abs + '</span>' +
+            '</div>' +
+          '</div>';
+        activityList.appendChild(card);
+      });
+    }
+
+    function fetchActivity() {
+      fetch('/api/activity-log', { cache:'no-store' })
+        .then(function(r) { return r.ok ? r.json() : []; })
+        .then(function(items) {
+          allActivity = Array.isArray(items) ? items : [];
+          renderActivity();
+        })
+        .catch(function() {
+          allActivity = [];
+          renderActivity();
+        });
+    }
+
+    var actFilters = document.getElementById('activityFilters');
+    if (actFilters) {
+      actFilters.addEventListener('click', function(e) {
+        var btn = e.target.closest('.ccy-opt'); if (!btn) return;
+        actFilters.querySelectorAll('.ccy-opt').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        activityFilter = btn.dataset.actFilter || 'all';
+        renderActivity();
+      });
+    }
+    var actSearch = document.getElementById('activitySearch');
+    if (actSearch) {
+      actSearch.addEventListener('input', function() {
+        activitySearchQ = actSearch.value; renderActivity();
+      });
+    }
+    var actRefresh = document.getElementById('activityRefreshBtn');
+    if (actRefresh) actRefresh.addEventListener('click', fetchActivity);
+    var actClear = document.getElementById('activityClearBtn');
+    if (actClear) {
+      actClear.addEventListener('click', function() {
+        if (!confirm('Clear the entire activity log? This cannot be undone.')) return;
+        fetch('/api/activity-log', { method:'DELETE' })
+          .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+          .then(function() { allActivity = []; renderActivity(); showToast('Activity log cleared.', 'success'); })
+          .catch(function() { showToast('Only Admin can clear the log.', 'error'); });
+      });
+    }
+
+    // Auto-refresh activity when its tab opens
+    var navActivityBtn = document.getElementById('navActivity');
+    if (navActivityBtn) navActivityBtn.addEventListener('click', fetchActivity);
+
     /* ── Init ── */
     fetchConfig();
     fetchProfile();
@@ -3680,6 +4294,8 @@
     fetchOrders();
     fetchPricing();
     fetchAccounts();
+    fetchActivity();
+    fetchPromos();
 
   })();
   </script>

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GrowVia — Admin Sign In</title>
   <meta name="description" content="Secure admin login for GrowVia control panel." />
+  <link id="favicon" rel="icon" type="image/png" href="Icon.png?v=3">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -432,17 +433,18 @@
             footerNote.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.4 8.3-8 10-4.6-1.7-8-5-8-10V6l8-4z" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg> Protected by end-to-end encryption · ' + bName + ' Admin';
           }
 
-          // Update logo badge (image if exists, first letter otherwise)
+          // Update logo badge (uploaded logo if set, else Icon.png) — plain icon, no box
           var badge = document.querySelector('.login-badge');
           if (badge) {
-            if (logoUrl) {
-              badge.innerHTML = '<img src="' + logoUrl + '" alt="' + bName + '" style="width:100%; height:100%; object-fit:contain; border-radius:12px;" />';
-              badge.style.background = 'transparent';
-              badge.style.boxShadow = 'none';
-            } else {
-              badge.textContent = bName.charAt(0).toUpperCase();
-              badge.style.background = 'linear-gradient(135deg, #5468ff, #8a5cf6)';
-            }
+            var iconSrc = logoUrl || 'Icon.png?v=3';
+            badge.innerHTML = '<img src="' + iconSrc + '" alt="' + bName + '" style="width:100%; height:100%; object-fit:contain; display:block;" />';
+            badge.style.background = 'transparent';
+            badge.style.boxShadow = 'none';
+            badge.style.borderRadius = '0';
+            badge.style.overflow = 'visible';
+            badge.style.animation = 'none';
+            badge.style.width = '60px';
+            badge.style.height = '60px';
           }
         })
         .catch(function () {});

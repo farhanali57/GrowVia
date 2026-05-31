@@ -74,6 +74,23 @@
   ],
   "orders": [
     {
+      "id": "GRV-310526-8040",
+      "createdAt": "2026-05-31T11:08:38.210Z",
+      "name": "Ahmad",
+      "whatsapp": "+923143632195",
+      "mode": "single",
+      "quality": "organic",
+      "platform": "Instagram",
+      "service": "Followers",
+      "qty": "10000",
+      "link": "https://www.pinterest.com/",
+      "notes": "",
+      "bulkItems": [],
+      "bulkText": "",
+      "totalPrice": "₨11,200",
+      "status": "completed"
+    },
+    {
       "id": "GRV-300526-7191",
       "createdAt": "2026-05-30T09:01:38.660Z",
       "name": "qayyom",
@@ -285,5 +302,41 @@
   },
   "platformLogos": {
     "pintrest": "https://images.seeklogo.com/logo-png/15/2/pinterest-badge-logo-png_seeklogo-157893.png"
-  }
+  },
+  "accounts": {
+    "jazzcash": {
+      "name": "Farhan Ali",
+      "number": "03287621015"
+    },
+    "easypaisa": {
+      "name": "Farhan Ali",
+      "number": "03106875620"
+    },
+    "sadapay": {
+      "name": "Farhan Ali",
+      "number": "03287621015"
+    },
+    "nayapay": {
+      "name": "Farhan Ali",
+      "number": "03106875620"
+    },
+    "other": ""
+  },
+  "activityLog": [
+    {
+      "id": "a1780230027972345",
+      "username": "admin",
+      "role": "Administrator",
+      "action": "login",
+      "at": "2026-05-31T12:20:27.972Z"
+    },
+    {
+      "id": "a1780226774646378",
+      "username": "admin",
+      "role": "Administrator",
+      "action": "login",
+      "at": "2026-05-31T11:26:14.646Z"
+    }
+  ],
+  "promos": []
 }

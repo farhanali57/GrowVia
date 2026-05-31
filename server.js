@@ -11,8 +11,33 @@ const ADMIN_PASS     = process.env.ADMIN_PASS     || 'GrowViaAdmin123';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'growvia-session-secret';
 const dataFile   = path.join(__dirname, 'data.json');
 const uploadsDir = path.join(__dirname, 'uploads');
+const backupsDir = path.join(__dirname, 'backups');
 
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+if (!fs.existsSync(backupsDir)) fs.mkdirSync(backupsDir, { recursive: true });
+
+/* ── AUTO-BACKUP: daily, keep last 7 ── */
+function runAutoBackup() {
+  try {
+    if (!fs.existsSync(dataFile)) return;
+    const stamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const target = path.join(backupsDir, 'growvia-' + stamp + '.json');
+    if (fs.existsSync(target)) return; // today already done
+    fs.copyFileSync(dataFile, target);
+    console.log('[auto-backup] saved', path.basename(target));
+    const files = fs.readdirSync(backupsDir)
+      .filter(f => /^growvia-\d{4}-\d{2}-\d{2}\.json$/.test(f))
+      .sort();
+    while (files.length > 7) {
+      const oldest = files.shift();
+      try { fs.unlinkSync(path.join(backupsDir, oldest)); console.log('[auto-backup] pruned', oldest); }
+      catch (_) {}
+    }
+  } catch (e) { console.error('[auto-backup] failed:', e.message); }
+}
+// Run on startup, then check every hour
+runAutoBackup();
+setInterval(runAutoBackup, 60 * 60 * 1000);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
@@ -22,6 +47,38 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage, limits: { fileSize: 4 * 1024 * 1024 } });
+
+/* ── RATE LIMITER: per-IP, sliding 1-hour window, max 5 orders ── */
+const ORDER_LIMIT = 5;
+const ORDER_WINDOW_MS = 60 * 60 * 1000;
+const orderHits = new Map();
+function rateLimitOrder(req, res, next) {
+  const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown').split(',')[0].trim();
+  const now = Date.now();
+  const hits = (orderHits.get(ip) || []).filter(t => now - t < ORDER_WINDOW_MS);
+  if (hits.length >= ORDER_LIMIT) {
+    return res.status(429).json({ error: 'Too many orders from your network. Please try again in an hour.' });
+  }
+  hits.push(now);
+  orderHits.set(ip, hits);
+  // Light periodic cleanup
+  if (orderHits.size > 5000) {
+    for (const [k, v] of orderHits) {
+      if (!v.length || now - v[v.length - 1] > ORDER_WINDOW_MS) orderHits.delete(k);
+    }
+  }
+  next();
+}
+
+/* ── PHONE NORMALIZATION (Pakistani: +92XXXXXXXXXX) ── */
+function normalizePkPhone(raw) {
+  let digits = String(raw || '').replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.indexOf('0092') === 0) digits = digits.slice(4);
+  else if (digits.indexOf('92') === 0) digits = digits.slice(2);
+  else if (digits.charAt(0) === '0') digits = digits.slice(1);
+  return '+92' + digits;
+}
 
 /* ── ORDER ID GENERATOR ── */
 function generateGrvId() {
@@ -96,7 +153,14 @@ function normalizeConfig(cfg) {
     offerStart:       String(cfg.offerStart       || '').trim(),
     offerEnd:         String(cfg.offerEnd         || '').trim(),
     themeColor:       String(cfg.themeColor       || 'blue').trim(),
-    whatsappNumber:   String(cfg.whatsappNumber   || '3143632195').trim()
+    whatsappNumber:   (function(raw){
+      let d = String(raw || '').replace(/\D/g, '');
+      if (!d) return '923143632195';
+      if (d.indexOf('0092') === 0) d = d.slice(4);
+      else if (d.indexOf('92') === 0) d = d.slice(2);
+      else if (d.charAt(0) === '0') d = d.slice(1);
+      return '92' + d;
+    })(cfg.whatsappNumber)
   };
 }
 
@@ -109,7 +173,9 @@ function loadData() {
     orders:       [],
     pricing:      defaultPricing(),
     accounts:     { jazzcash: { number:'', name:'' }, easypaisa: { number:'', name:'' }, sadapay: { number:'', name:'' }, nayapay: { number:'', name:'' }, bank: { bankName:'', accountTitle:'', accountNumber:'', iban:'' }, other: '' },
-    platformLogos: {}
+    platformLogos: {},
+    activityLog:   [],
+    promos:        []
   };
   try {
     if (!fs.existsSync(dataFile)) return def;
@@ -121,8 +187,26 @@ function loadData() {
     raw.orders       = Array.isArray(raw.orders)       ? raw.orders       : [];
     raw.pricing      = raw.pricing || defaultPricing();
     raw.platformLogos = raw.platformLogos || {};
+    raw.activityLog  = Array.isArray(raw.activityLog)  ? raw.activityLog  : [];
+    raw.promos       = Array.isArray(raw.promos)       ? raw.promos       : [];
     return raw;
   } catch (e) { console.error('data.json read error', e); return def; }
+}
+
+function logActivity(username, role, action) {
+  try {
+    const d = loadData();
+    d.activityLog.unshift({
+      id: 'a' + Date.now() + Math.round(Math.random() * 1000),
+      username: String(username || 'unknown'),
+      role:     String(role     || 'Unknown'),
+      action:   String(action   || ''),
+      at:       new Date().toISOString()
+    });
+    // Cap at 500 entries to keep data.json lean
+    if (d.activityLog.length > 500) d.activityLog.length = 500;
+    saveData(d);
+  } catch (e) { console.error('activity log error', e); }
 }
 
 function saveData(data) {
@@ -185,9 +269,24 @@ app.use(express.static(__dirname));
 app.get('/api/config', (req, res) => {
   const d = loadData(); res.json(d.config || {});
 });
-app.post('/api/config', requireAuth, requireAdmin, (req, res) => {
+app.post('/api/config', requireAuth, requireManagerOrAdmin, (req, res) => {
   const d = loadData();
-  d.config = normalizeConfig(req.body);
+  const role = getSessionRole(req);
+  if (role === 'Manager') {
+    // Manager can only update offer + order-availability fields; brand/theme/WA stay locked
+    const cur = d.config || {};
+    const merged = Object.assign({}, cur, {
+      allowSingleOrder: req.body.allowSingleOrder !== undefined ? req.body.allowSingleOrder : cur.allowSingleOrder,
+      allowBulkOrder:   req.body.allowBulkOrder   !== undefined ? req.body.allowBulkOrder   : cur.allowBulkOrder,
+      offerActive:      req.body.offerActive      !== undefined ? req.body.offerActive      : cur.offerActive,
+      offerText:        req.body.offerText        !== undefined ? req.body.offerText        : cur.offerText,
+      offerStart:       req.body.offerStart       !== undefined ? req.body.offerStart       : cur.offerStart,
+      offerEnd:         req.body.offerEnd         !== undefined ? req.body.offerEnd         : cur.offerEnd
+    });
+    d.config = normalizeConfig(merged);
+  } else {
+    d.config = normalizeConfig(req.body);
+  }
   saveData(d); res.json(d.config);
 });
 app.post('/api/config/logo', requireAuth, requireAdmin, upload.single('logo'), (req, res) => {
@@ -206,7 +305,7 @@ app.get('/api/user', requireAuth, (req, res) => {
 app.get('/api/testimonials', (req, res) => {
   const d = loadData(); res.json(d.testimonials || []);
 });
-app.post('/api/testimonials', requireAuth, requireAdmin, upload.single('image'), (req, res) => {
+app.post('/api/testimonials', requireAuth, requireManagerOrAdmin, upload.single('image'), (req, res) => {
   const d    = loadData();
   const name = String(req.body.name || '').trim();
   const text = String(req.body.text || '').trim();
@@ -220,13 +319,13 @@ app.post('/api/testimonials', requireAuth, requireAdmin, upload.single('image'),
   };
   d.testimonials.unshift(item); saveData(d); res.json(item);
 });
-app.put('/api/testimonials/:id/toggle', requireAuth, requireAdmin, (req, res) => {
+app.put('/api/testimonials/:id/toggle', requireAuth, requireManagerOrAdmin, (req, res) => {
   const d = loadData(); let found = false;
   d.testimonials.forEach(i => { if (i.id === req.params.id) { i.hidden = !i.hidden; found = true; } });
   if (!found) return res.status(404).json({ error: 'Not found' });
   saveData(d); res.json({ success: true });
 });
-app.delete('/api/testimonials/:id', requireAuth, requireAdmin, (req, res) => {
+app.delete('/api/testimonials/:id', requireAuth, requireManagerOrAdmin, (req, res) => {
   const d = loadData();
   d.testimonials = d.testimonials.filter(i => i.id !== req.params.id);
   saveData(d); res.json({ success: true });
@@ -236,7 +335,7 @@ app.delete('/api/testimonials/:id', requireAuth, requireAdmin, (req, res) => {
 app.get('/api/faqs', (req, res) => {
   const d = loadData(); res.json(d.faqs || []);
 });
-app.post('/api/faqs', requireAuth, requireAdmin, (req, res) => {
+app.post('/api/faqs', requireAuth, requireManagerOrAdmin, (req, res) => {
   const d = loadData();
   const q = String(req.body.question || '').trim();
   const a = String(req.body.answer   || '').trim();
@@ -244,13 +343,13 @@ app.post('/api/faqs', requireAuth, requireAdmin, (req, res) => {
   const item = { id: 'f' + Date.now() + Math.round(Math.random() * 1000), question: q, answer: a, hidden: false };
   d.faqs.unshift(item); saveData(d); res.json(item);
 });
-app.put('/api/faqs/:id/toggle', requireAuth, requireAdmin, (req, res) => {
+app.put('/api/faqs/:id/toggle', requireAuth, requireManagerOrAdmin, (req, res) => {
   const d = loadData(); let found = false;
   d.faqs.forEach(i => { if (i.id === req.params.id) { i.hidden = !i.hidden; found = true; } });
   if (!found) return res.status(404).json({ error: 'Not found' });
   saveData(d); res.json({ success: true });
 });
-app.delete('/api/faqs/:id', requireAuth, requireAdmin, (req, res) => {
+app.delete('/api/faqs/:id', requireAuth, requireManagerOrAdmin, (req, res) => {
   const d = loadData();
   d.faqs = d.faqs.filter(i => i.id !== req.params.id);
   saveData(d); res.json({ success: true });
@@ -260,12 +359,34 @@ app.delete('/api/faqs/:id', requireAuth, requireAdmin, (req, res) => {
 app.get('/api/orders', requireAuth, (req, res) => {
   const d = loadData(); res.json(d.orders || []);
 });
-app.post('/api/orders', (req, res) => {
+app.post('/api/orders', rateLimitOrder, (req, res) => {
   const d    = loadData();
   const body = req.body;
+  // Honeypot: bots fill any visible-looking field; humans never see it
+  if (body.website || body._hp) return res.status(400).json({ error: 'Request rejected.' });
   const name     = String(body.name     || '').trim();
-  const whatsapp = String(body.whatsapp || '').trim();
-  if (!name || !whatsapp) return res.status(400).json({ error: 'Name and WhatsApp are required.' });
+  const whatsapp = normalizePkPhone(body.whatsapp);
+  if (!name || !whatsapp || whatsapp === '+92') return res.status(400).json({ error: 'Name and phone number are required.' });
+
+  // Promo handling
+  const rawSubtotal = Math.max(0, Number(String(body.subtotalAmount || '').replace(/[^\d]/g, '')) || 0);
+  let promoLine = '';
+  let promoCode = '';
+  let promoDiscount = 0;
+  const promo = findActivePromo(body.promoCode);
+  if (promo && rawSubtotal > 0) {
+    promoDiscount = computePromoDiscount(promo, rawSubtotal);
+    promoCode = promo.code;
+    promoLine = promo.type === 'percent'
+      ? promo.code + ' (' + promo.value + '% off)'
+      : promo.code + ' (₨' + promo.value.toLocaleString() + ' off)';
+    promo.uses = (promo.uses || 0) + 1;
+  }
+
+  const finalTotal = promoDiscount > 0 && rawSubtotal > 0
+    ? '₨' + Math.max(0, rawSubtotal - promoDiscount).toLocaleString()
+    : String(body.totalPrice || '—').trim();
+
   const order = {
     id: (body.id && /^GRV-\d{6}-\d{4}$/.test(String(body.id))) ? String(body.id).trim() : generateGrvId(),
     createdAt:  new Date().toISOString(),
@@ -279,12 +400,51 @@ app.post('/api/orders', (req, res) => {
     notes:       String(body.notes      || '').trim(),
     bulkItems:   Array.isArray(body.bulkItems) ? body.bulkItems : [],
     bulkText:    String(body.bulkText   || '').trim(),
-    totalPrice:  String(body.totalPrice || '—').trim(),
+    subtotal:    rawSubtotal ? '₨' + rawSubtotal.toLocaleString() : '',
+    promoCode,
+    promoLabel:  promoLine,
+    promoDiscount: promoDiscount ? '₨' + promoDiscount.toLocaleString() : '',
+    totalPrice:  finalTotal,
     status:      'pending'
   };
   d.orders.unshift(order); saveData(d);
-  res.json({ success: true, orderId: order.id });
+  res.json({ success: true, orderId: order.id, discount: promoDiscount, finalTotal });
 });
+/* Public order-tracking lookup (no auth) — masks PII */
+app.get('/api/orders/:id/track', (req, res) => {
+  const d = loadData();
+  const id = String(req.params.id || '').trim();
+  const o = (d.orders || []).find(x => x.id === id);
+  if (!o) return res.status(404).json({ error: 'No order found with that ID.' });
+  // Mask phone: +92 31x xxx xx95 (show first 3 + last 2 digits only)
+  const wa = String(o.whatsapp || '');
+  let maskedPhone = wa;
+  const digits = wa.replace(/\D/g, '');
+  if (digits.length >= 7) {
+    maskedPhone = '+' + digits.slice(0, 4) + ' ' + digits.slice(4, 6) + 'x xxx xx' + digits.slice(-2);
+  }
+  // First name only
+  const firstName = (o.name || '').split(/\s+/)[0] || '';
+  // Item count for bulk
+  let itemCount = 1;
+  if (o.mode === 'bulk') {
+    itemCount = (o.bulkText || '').split('\n').filter(l => l.trim()).length;
+  }
+  res.json({
+    id: o.id,
+    createdAt: o.createdAt,
+    status: o.status,
+    mode: o.mode,
+    quality: o.quality === 'bot' ? 'Basic' : 'Premium',
+    platform: o.platform || '',
+    service: o.service || '',
+    qty: o.qty || '',
+    itemCount,
+    totalPrice: o.totalPrice,
+    customer: { name: firstName, phone: maskedPhone }
+  });
+});
+
 app.put('/api/orders/:id/status', requireAuth, (req, res) => {
   const d      = loadData();
   const status = String(req.body.status || '').trim();
@@ -347,35 +507,53 @@ app.delete('/api/pricing/:platform/:service', requireAuth, requireManagerOrAdmin
 });
 
 /* ── ADMINS ── */
-app.get('/api/admins', requireAuth, requireAdmin, (req, res) => {
+const MANAGER_ALLOWED_ROLES = ['Manager', 'Employee'];
+
+app.get('/api/admins', requireAuth, requireManagerOrAdmin, (req, res) => {
   const d = loadData();
   const list = d.admins && d.admins.length > 0
     ? d.admins
     : [{ username: ADMIN_USER, password: ADMIN_PASS, role: 'Master Admin' }];
   res.json(list.map(a => ({ username: a.username, password: a.password || '', role: a.role || 'Admin' })));
 });
-app.post('/api/admins', requireAuth, requireAdmin, (req, res) => {
+app.post('/api/admins', requireAuth, requireManagerOrAdmin, (req, res) => {
   const d        = loadData();
   const username = String(req.body.username || '').trim();
   const password = String(req.body.password || '').trim();
   const role     = String(req.body.role     || 'Employee').trim();
   if (!username || !password) return res.status(400).json({ error: 'Username and password required.' });
   if (d.admins.find(a => a.username === username)) return res.status(400).json({ error: 'User already exists.' });
+  if (getSessionRole(req) === 'Manager' && !MANAGER_ALLOWED_ROLES.includes(role)) {
+    return res.status(403).json({ error: 'Managers can only add Manager or Employee accounts.' });
+  }
   d.admins.push({ username, password, role });
   saveData(d); res.json({ success: true });
 });
-app.put('/api/admins/:username', requireAuth, requireAdmin, (req, res) => {
+app.put('/api/admins/:username', requireAuth, requireManagerOrAdmin, (req, res) => {
   const d = loadData();
   const admin = d.admins.find(a => a.username === req.params.username);
   if (!admin) return res.status(404).json({ error: 'Admin not found.' });
+  const sessionRole = getSessionRole(req);
+  if (sessionRole === 'Manager') {
+    if (!MANAGER_ALLOWED_ROLES.includes(admin.role)) {
+      return res.status(403).json({ error: 'Managers cannot edit Admin accounts.' });
+    }
+    if (req.body.role && !MANAGER_ALLOWED_ROLES.includes(String(req.body.role).trim())) {
+      return res.status(403).json({ error: 'Managers can only assign Manager or Employee role.' });
+    }
+  }
   if (req.body.password && String(req.body.password).trim()) admin.password = String(req.body.password).trim();
   if (req.body.role) admin.role = String(req.body.role).trim();
   saveData(d); res.json({ success: true });
 });
-app.delete('/api/admins/:username', requireAuth, requireAdmin, (req, res) => {
+app.delete('/api/admins/:username', requireAuth, requireManagerOrAdmin, (req, res) => {
   const d = loadData();
   if (req.params.username === req.session.username)
     return res.status(400).json({ error: 'Cannot delete your own account.' });
+  const target = d.admins.find(a => a.username === req.params.username);
+  if (getSessionRole(req) === 'Manager' && target && !MANAGER_ALLOWED_ROLES.includes(target.role)) {
+    return res.status(403).json({ error: 'Managers cannot delete Admin accounts.' });
+  }
   d.admins = d.admins.filter(a => a.username !== req.params.username);
   saveData(d); res.json({ success: true });
 });
@@ -396,7 +574,7 @@ app.get('/api/payment-methods', (req, res) => {
 app.get('/api/accounts', requireAuth, (req, res) => {
   const d = loadData(); res.json(d.accounts || {});
 });
-app.post('/api/accounts', requireAuth, requireAdmin, (req, res) => {
+app.post('/api/accounts', requireAuth, requireManagerOrAdmin, (req, res) => {
   const d = loadData();
   d.accounts = req.body;
   saveData(d); res.json({ success: true });
@@ -427,14 +605,100 @@ app.post('/login', (req, res) => {
   if (valid) {
     req.session.admin    = true;
     req.session.username = username;
+    const role = username === ADMIN_USER ? 'Administrator' : (valid.role || 'Employee');
+    logActivity(username, role, 'login');
     return res.redirect('/admin');
   }
   return res.redirect('/login?error=1');
 });
 app.get('/logout', (req, res) => {
+  const username = req.session && req.session.username;
+  if (username) {
+    const role = username === ADMIN_USER ? 'Administrator' : (function(){
+      const d = loadData();
+      const a = d.admins.find(a => a.username === username);
+      return a ? (a.role || 'Employee') : 'Unknown';
+    })();
+    logActivity(username, role, 'logout');
+  }
   req.session.destroy(() => { res.clearCookie('connect.sid'); res.redirect('/login'); });
 });
+
+/* ── PROMO CODES ── */
+function findActivePromo(code) {
+  const d = loadData();
+  const c = String(code || '').trim().toUpperCase();
+  if (!c) return null;
+  const p = (d.promos || []).find(x => (x.code || '').toUpperCase() === c);
+  if (!p || p.disabled) return null;
+  if (p.expiry) {
+    const exp = new Date(p.expiry).getTime();
+    if (!isNaN(exp) && exp < Date.now()) return null;
+  }
+  if (p.maxUses && (p.uses || 0) >= p.maxUses) return null;
+  return p;
+}
+function computePromoDiscount(promo, subtotal) {
+  if (!promo || !subtotal) return 0;
+  if (promo.type === 'percent') return Math.round(subtotal * (Number(promo.value) || 0) / 100);
+  return Math.min(subtotal, Math.round(Number(promo.value) || 0));
+}
+
+app.get('/api/promos', requireAuth, requireManagerOrAdmin, (req, res) => {
+  const d = loadData(); res.json(d.promos || []);
+});
+app.post('/api/promos', requireAuth, requireManagerOrAdmin, (req, res) => {
+  const d = loadData();
+  const code = String(req.body.code || '').trim().toUpperCase();
+  const type = req.body.type === 'percent' ? 'percent' : 'flat';
+  const value = Math.max(0, Number(req.body.value) || 0);
+  if (!code || !value) return res.status(400).json({ error: 'Code and value required.' });
+  if (type === 'percent' && value > 100) return res.status(400).json({ error: 'Percent must be 0–100.' });
+  if (d.promos.find(p => (p.code || '').toUpperCase() === code)) {
+    return res.status(400).json({ error: 'Code already exists.' });
+  }
+  const item = {
+    id: 'p' + Date.now() + Math.round(Math.random() * 1000),
+    code, type, value,
+    expiry:  String(req.body.expiry || '').trim(),
+    maxUses: Math.max(0, Number(req.body.maxUses) || 0),
+    uses:    0,
+    disabled: false,
+    createdAt: new Date().toISOString()
+  };
+  d.promos.unshift(item); saveData(d); res.json(item);
+});
+app.put('/api/promos/:id/toggle', requireAuth, requireManagerOrAdmin, (req, res) => {
+  const d = loadData();
+  const p = (d.promos || []).find(x => x.id === req.params.id);
+  if (!p) return res.status(404).json({ error: 'Not found' });
+  p.disabled = !p.disabled; saveData(d); res.json({ success: true, disabled: p.disabled });
+});
+app.delete('/api/promos/:id', requireAuth, requireManagerOrAdmin, (req, res) => {
+  const d = loadData();
+  d.promos = (d.promos || []).filter(x => x.id !== req.params.id);
+  saveData(d); res.json({ success: true });
+});
+// Public validation endpoint
+app.get('/api/promos/validate/:code', (req, res) => {
+  const p = findActivePromo(req.params.code);
+  if (!p) return res.status(404).json({ valid: false, error: 'Invalid or expired code.' });
+  res.json({ valid: true, code: p.code, type: p.type, value: p.value });
+});
+
+/* ── ACTIVITY LOG (Manager + Admin only) ── */
+app.get('/api/activity-log', requireAuth, requireManagerOrAdmin, (req, res) => {
+  const d = loadData();
+  res.json(d.activityLog || []);
+});
+app.delete('/api/activity-log', requireAuth, requireAdmin, (req, res) => {
+  const d = loadData();
+  d.activityLog = [];
+  saveData(d);
+  res.json({ success: true });
+});
 app.get('/',      (req, res) => res.sendFile(path.join(__dirname, 'GrowVia.html')));
+app.get('/track', (req, res) => res.sendFile(path.join(__dirname, 'track.html')));
 app.get('/admin', requireAuth, (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 
 app.listen(PORT, () => console.log('GrowVia server running → http://localhost:' + PORT));
