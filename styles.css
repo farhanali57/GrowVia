@@ -1180,6 +1180,11 @@ html[data-theme="light"] .pricing-list-btn {
   display: grid; gap: 18px;
 }
 .pricing-modal__loading { text-align:center; color: var(--text-3); padding: 40px 0; font-size:14px; }
+
+/* Pricing modal grid — mobile-first */
+.pricing-modal-grid { grid-template-columns: 1fr; }
+@media (min-width: 720px) { .pricing-modal-grid { grid-template-columns: 1fr 1fr; gap: 24px; } }
+
 .pm-platform { }
 .pm-platform__name {
   font-size: 12px; font-weight: 800; color: var(--text-3);
@@ -1197,11 +1202,87 @@ html[data-theme="light"] .pricing-list-btn {
   border: 1px solid var(--border);
   border-radius: 10px;
   transition: border-color 0.2s, background 0.2s;
+  min-width: 0;
 }
 .pm-item:hover { background: var(--surface-2); border-color: var(--border-strong); }
-.pm-item__service { font-size: 11.5px; color: var(--text-3); margin-bottom: 5px; font-weight: 600; }
+.pm-item__service { font-size: 11.5px; color: var(--text-3); margin-bottom: 5px; font-weight: 600; word-wrap: break-word; }
 .pm-item__price   { font-size: 17px; font-weight: 800; color: var(--accent-text); }
 .pm-item__unit    { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+
+/* Pricing list — row-based layout (tablet/desktop default, mobile stacked) */
+.pm-col-hdr {
+  display: grid;
+  grid-template-columns: 1fr 110px 110px 80px;
+  gap: 8px;
+  padding: 4px 14px 6px;
+  margin-bottom: 4px;
+}
+.pm-col-hdr > span {
+  font-size: 10px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-3);
+}
+.pm-col-hdr__premium { color: #ffd066; text-align: right; }
+.pm-col-hdr__basic   { color: #9aa6ff; text-align: right; }
+.pm-col-hdr__per     { text-align: right; }
+
+.pm-rows {
+  display: flex; flex-direction: column; gap: 1px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.pm-row {
+  display: grid;
+  grid-template-columns: 1fr 110px 110px 80px;
+  gap: 8px;
+  align-items: center;
+  padding: 11px 14px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.pm-row:hover { background: var(--surface-2); }
+.pm-row__service { font-size: 14px; font-weight: 600; color: var(--text); min-width: 0; word-wrap: break-word; }
+.pm-row__price   { text-align: right; min-width: 0; }
+.pm-row__price--premium .pm-row__value { color: #ffd066; }
+.pm-row__price--basic   .pm-row__value { color: #9aa6ff; }
+.pm-row__label { display: none; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+.pm-row__value { font-size: 15px; font-weight: 800; }
+.pm-row__per   { font-size: 11px; color: var(--text-3); text-align: right; min-width: 0; }
+
+/* ── Mobile: stack each row as a card with grouped premium/basic ── */
+@media (max-width: 600px) {
+  #pricingModalBody { padding: 0 4px; }
+  .pricing-overlay .wrap { padding: 0 14px; }
+  .pricing-overlay .wrap[style*="padding-top"] { padding-top: 22px !important; padding-bottom: 60px !important; }
+  .pm-platform__name { font-size: 11px; margin-bottom: 8px; }
+
+  .pm-col-hdr { display: none; } /* column header is meaningless when stacked */
+
+  .pm-rows { border-radius: 14px; }
+  .pm-row {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "service service"
+      "premium basic"
+      "per     per";
+    gap: 8px 10px;
+    padding: 12px 14px;
+  }
+  .pm-row__service { grid-area: service; font-size: 13.5px; font-weight: 700; padding-bottom: 4px; border-bottom: 1px dashed var(--border); }
+  .pm-row__price   { grid-area: auto; text-align: left; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .pm-row__price--premium { grid-area: premium; }
+  .pm-row__price--basic   { grid-area: basic; }
+  .pm-row__label { display: inline; }
+  .pm-row__value { font-size: 15px; }
+  .pm-row__per   { grid-area: per; text-align: left; padding-top: 2px; font-size: 10.5px; opacity: 0.7; }
+}
+@media (max-width: 360px) {
+  .pm-row { padding: 10px 12px; gap: 6px 8px; }
+  .pm-row__service { font-size: 13px; }
+  .pm-row__value { font-size: 14px; }
+}
 
 /* floating offer — light theme */
 html[data-theme="light"] .floating-offer {

@@ -476,16 +476,16 @@
 
   function updateOfferBanner() {
     var timerWrap = document.getElementById("floatingTimerWrap");
-
-    if (offerInterval) clearInterval(offerInterval);
+    var timerLabel = timerWrap ? timerWrap.querySelector('.floating-offer__timer-label') : null;
 
     if (!appConfig.offerActive) {
       if (floatingOffer) floatingOffer.classList.remove('pop-show');
+      if (offerInterval) { clearInterval(offerInterval); offerInterval = null; }
       return;
     }
 
     var text = appConfig.offerText || 'Special offer is active now!';
-    var offerKey = text + '|' + (appConfig.offerEnd || '');
+    var offerKey = text + '|' + (appConfig.offerEnd || '') + '|' + (appConfig.offerStart || '');
     // Only reset the "closed" flag when the offer content actually changes
     if (offerKey !== _lastOfferKey) {
       try { localStorage.removeItem("growvia-offer-closed"); } catch(e){}
@@ -508,20 +508,39 @@
       setTimeout(function () { floatingOffer.classList.add('pop-show'); }, 800);
     }
 
+    // Live countdown — ticks every second, smooth across config refreshes
     function tick() {
-      if (!appConfig.offerEnd) {
+      var endTs   = appConfig.offerEnd   ? new Date(appConfig.offerEnd).getTime()   : 0;
+      var startTs = appConfig.offerStart ? new Date(appConfig.offerStart).getTime() : 0;
+      var now = Date.now();
+
+      // No end time at all — hide timer
+      if (!endTs || isNaN(endTs)) {
         if (timerWrap) timerWrap.style.display = 'none';
         return;
       }
-      var end  = new Date(appConfig.offerEnd).getTime();
-      var dist = end - Date.now();
-      if (dist < 0) {
-        clearInterval(offerInterval);
+
+      // Offer already ended
+      if (now >= endTs) {
         if (timerWrap) timerWrap.style.display = 'none';
         if (floatingOfferTimer) floatingOfferTimer.textContent = 'Ended';
+        if (offerInterval) { clearInterval(offerInterval); offerInterval = null; }
         return;
       }
+
+      var target, label;
+      // Offer hasn't started yet — count down to start
+      if (startTs && !isNaN(startTs) && now < startTs) {
+        target = startTs;
+        label = 'Starts in';
+      } else {
+        target = endTs;
+        label = 'Ends in';
+      }
+      var dist = target - now;
       if (timerWrap) timerWrap.style.display = 'flex';
+      if (timerLabel) timerLabel.textContent = label;
+
       var d = Math.floor(dist / 86400000);
       var h = Math.floor((dist % 86400000) / 3600000);
       var m = Math.floor((dist % 3600000) / 60000);
@@ -533,8 +552,14 @@
       if (floatingOfferTimer)  floatingOfferTimer.textContent  = str;
       if (heroOfferCountdown)  heroOfferCountdown.textContent  = str;
     }
-    tick();
-    offerInterval = setInterval(tick, 1000);
+
+    // Only (re)start the ticker if it isn't already running — keeps timing smooth
+    if (!offerInterval) {
+      tick();
+      offerInterval = setInterval(tick, 1000);
+    } else {
+      tick(); // immediate refresh on the latest config without resetting interval
+    }
   }
 
   if (floatingOfferClose) {
@@ -1724,17 +1749,17 @@
       hdr.className = 'pm-platform__name';
       hdr.innerHTML = getPmIcon(platform) + '<span>' + platform + '</span>';
       section.appendChild(hdr);
-      // Column headers
+      // Column headers (visible on tablet/desktop, hidden on mobile via CSS)
       var colHdr = document.createElement('div');
-      colHdr.style.cssText = 'display:grid;grid-template-columns:1fr 120px 120px 60px;gap:6px;padding:4px 14px;margin-bottom:2px;';
-      colHdr.innerHTML = '<span style="font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;">Service</span>' +
-        '<span style="font-size:10px;font-weight:800;color:#ffd066;text-align:right;">⭐ Premium</span>' +
-        '<span style="font-size:10px;font-weight:800;color:#9aa6ff;text-align:right;">🚀 Basic</span>' +
-        '<span style="font-size:10px;font-weight:700;color:var(--text-3);text-align:right;">per</span>';
+      colHdr.className = 'pm-col-hdr';
+      colHdr.innerHTML = '<span class="pm-col-hdr__service">Service</span>' +
+        '<span class="pm-col-hdr__premium">⭐ Premium</span>' +
+        '<span class="pm-col-hdr__basic">🚀 Basic</span>' +
+        '<span class="pm-col-hdr__per">per 1,000</span>';
       section.appendChild(colHdr);
       // Service rows
       var list = document.createElement('div');
-      list.style.cssText = 'display:flex;flex-direction:column;gap:1px;border:1px solid var(--border);border-radius:12px;overflow:hidden;';
+      list.className = 'pm-rows';
       Object.keys(services).forEach(function (service, idx) {
         var svc = services[service];
         var organicVal = 0, botVal = 0;
@@ -1743,14 +1768,12 @@
           botVal     = svc.bot     !== undefined ? svc.bot     : Math.round((svc.pkr||0)*0.5);
         } else { organicVal = Math.round((Number(svc)||0)*USD_TO_PKR); botVal = Math.round(organicVal*0.5); }
         var row = document.createElement('div');
-        row.style.cssText = 'display:grid;grid-template-columns:1fr 120px 120px 60px;gap:6px;align-items:center;padding:11px 14px;cursor:pointer;transition:background 0.15s;background:var(--surface);';
+        row.className = 'pm-row';
         row.innerHTML =
-          '<span style="font-size:14px;font-weight:600;color:var(--text);">' + service + '</span>' +
-          '<span style="font-size:15px;font-weight:800;color:#ffd066;text-align:right;">₨' + Math.round(organicVal).toLocaleString('en-US') + '</span>' +
-          '<span style="font-size:15px;font-weight:800;color:#9aa6ff;text-align:right;">₨' + Math.round(botVal).toLocaleString('en-US') + '</span>' +
-          '<span style="font-size:11px;color:var(--text-3);text-align:right;">1,000</span>';
-        row.addEventListener('mouseenter', function(){ row.style.background='var(--surface-2)'; });
-        row.addEventListener('mouseleave', function(){ row.style.background='var(--surface)'; });
+          '<div class="pm-row__service">' + service + '</div>' +
+          '<div class="pm-row__price pm-row__price--premium"><span class="pm-row__label">⭐ Premium</span><span class="pm-row__value">₨' + Math.round(organicVal).toLocaleString('en-US') + '</span></div>' +
+          '<div class="pm-row__price pm-row__price--basic"><span class="pm-row__label">🚀 Basic</span><span class="pm-row__value">₨' + Math.round(botVal).toLocaleString('en-US') + '</span></div>' +
+          '<div class="pm-row__per">per 1,000</div>';
         row.addEventListener('click', function() {
           closePricingOverlay();
           var sec = document.getElementById('order');
@@ -2064,6 +2087,140 @@
           roman: "Allah Hafiz! Jab bhi madad chahiye, hazir hain. WhatsApp pe humari team hamesha available hai.",
           ur:    "اللہ حافظ! جب بھی مدد چاہیے، حاضر ہیں۔"
         }
+      },
+      {
+        id: "minimum_order",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["minimum", "kam se kam", "minimum quantity", "kitne kam se", "sab se kam", "kam quantity"]);
+          if (lang === "ur") return /(کم سے کم|کم از کم|کم مقدار)/.test(t);
+          return /\b(minimum\s+(order|quantity|qty)|smallest\s+order|how\s+(low|few|small)\s+(can|i\s+can)|min(\.|imum)?\s*(qty|qua|order))\b/i.test(t);
+        },
+        reply: {
+          en:    "Minimum order varies by service. For most platforms, the minimum is 50–100 (followers, likes, views). For YouTube Watch Hours and big platforms, minimums may be a bit higher. The order form will show the smallest accepted quantity when you pick a service.",
+          roman: "Minimum order service ke hisab se hota hai. Zyada platforms pe 50–100 (followers, likes, views) se start hota hai. YouTube Watch Hours waghaira me thora zyada ho sakta hai. Form pe service select karne pe minimum quantity dikh jati hai.",
+          ur:    "کم از کم مقدار سروس کے حساب سے ہوتی ہے۔ زیادہ تر پلیٹ فارمز پر 50-100 سے شروع ہوتا ہے۔ فارم پر سروس منتخب کرنے پر دکھایا جاتا ہے۔"
+        }
+      },
+      {
+        id: "why_us",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["kyu tumhe", "kyun tumse", "kyu apse", "kyon apse", "tum behtar", "competitor", "doosri site", "alag kya"]);
+          if (lang === "ur") return /(آپ کیوں|بہتر کیوں|مختلف کیا)/.test(t);
+          return /\b(why\s+(choose|pick|use|you|growvia)|what\s+makes\s+you\s+(different|special|better)|why\s+(not|should)\s+i|competitors?|other\s+(sites?|panels?)|alternative)\b/i.test(t);
+        },
+        reply: {
+          en:    "Three things make {brand} different:\n1. No signup, no wallet, no balance — just place an order and talk to a real person on WhatsApp.\n2. Proper receipt and live tracking with every order — most panels never bother.\n3. Ethical delivery: no password requests, no fraud, no shady tactics — only safe, professional growth.",
+          roman: "{brand} 3 tareeqon se alag hai:\n1. Koi signup, wallet ya balance nahi — bas order place karein aur WhatsApp pe real banday se baat karein.\n2. Har order ke saath proper receipt aur live tracking — doosray panels yeh nahi dete.\n3. Ethical delivery: password kabhi nahi mangtay, koi fraud nahi — sirf safe, professional growth.",
+          ur:    "{brand} تین وجوہات سے مختلف ہے:\n1. کوئی سائن اپ یا والٹ نہیں — صرف آرڈر دیں اور واٹس ایپ پر اصلی انسان سے بات کریں۔\n2. ہر آرڈر کے ساتھ مناسب رسید اور لائیو ٹریکنگ۔\n3. اخلاقی ڈیلیوری: کوئی پاس ورڈ نہیں مانگا جاتا۔"
+        }
+      },
+      {
+        id: "proof",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["screenshot", "proof", "saboot", "saboot do", "screen", "dikha", "dikhao", "image bhejo", "tasveer"]);
+          if (lang === "ur") return /(ثبوت|اسکرین شاٹ|تصویر|دکھاؤ)/.test(t);
+          return /\b(proof|screenshot|screen\s+shot|show\s+me\s+(proof|results)|past\s+orders|portfolio|samples?|examples?)\b/i.test(t);
+        },
+        reply: {
+          en:    "Our team can share recent delivery samples, customer testimonials and screenshots directly on WhatsApp — just tap the green WhatsApp button. You'll also find genuine reviews from past customers on the About Us page (just tap the About button in the navbar).",
+          roman: "Humari team WhatsApp pe past orders ke samples, customer reviews aur screenshots share kar deti hai — neechay green WhatsApp button dabayein. About Us page pe bhi real customers ke reviews mil jayenge.",
+          ur:    "ہماری ٹیم واٹس ایپ پر حالیہ ڈیلیوری کے نمونے اور صارفین کے تبصرے بھیج دیتی ہے۔ About Us صفحے پر بھی اصلی جائزے ہیں۔"
+        }
+      },
+      {
+        id: "platform_instagram",
+        match: function(t, lang) {
+          var t2 = String(t || '').toLowerCase();
+          var hasIG = /\b(instagram|insta|ig)\b/.test(t2);
+          if (!hasIG) return false;
+          // Only match if no other strong intent keyword (so generic IG questions land here)
+          return !/\b(payment|refund|password|track|order\s+how|kese\s+order)\b/i.test(t2);
+        },
+        reply: {
+          en:    "Yes, we offer the full Instagram suite: followers, likes, views, comments, shares, saves, and reach — in both Premium (real, lasting) and Basic (fast, automated). Pick Instagram on the order form to see live PKR pricing for every service.",
+          roman: "Instagram ki saari services hain: followers, likes, views, comments, shares, saves, reach — Premium (real, lasting) aur Basic (fast, automated) dono me. Order form pe Instagram select karein, live PKR rates mil jayenge.",
+          ur:    "انسٹاگرام کی تمام سروسز دستیاب ہیں: followers، likes، views، comments، shares، saves، reach — پریمیم اور بیسک دونوں۔"
+        }
+      },
+      {
+        id: "platform_tiktok",
+        match: function(t, lang) {
+          var t2 = String(t || '').toLowerCase();
+          var hasTT = /\b(tiktok|tik\s*tok|tt)\b/.test(t2);
+          if (!hasTT) return false;
+          return !/\b(payment|refund|password|track|order\s+how|kese\s+order)\b/i.test(t2);
+        },
+        reply: {
+          en:    "TikTok services available: followers, likes, views, comments, shares, and saves — Premium or Basic. Pick TikTok on the order form to see live rates. TikTok views are especially fast and cost-effective.",
+          roman: "TikTok ki services: followers, likes, views, comments, shares, saves — Premium ya Basic. Form pe TikTok select karein, live rates mil jayenge. TikTok views khas tor pe fast aur sasti hain.",
+          ur:    "ٹک ٹاک کی سروسز: followers، likes، views، comments، shares، saves — پریمیم یا بیسک۔ ویوز خاص طور پر تیز اور سستی ہیں۔"
+        }
+      },
+      {
+        id: "platform_youtube",
+        match: function(t, lang) {
+          var t2 = String(t || '').toLowerCase();
+          var hasYT = /\b(youtube|yt|yutub)\b/.test(t2);
+          if (!hasYT) return false;
+          return !/\b(payment|refund|password|track|order\s+how|kese\s+order)\b/i.test(t2);
+        },
+        reply: {
+          en:    "YouTube services: subscribers, views, likes, comments, watch hours, and shares — Premium and Basic. For monetisation (4,000 watch hours + 1,000 subscribers), Premium is the safer choice.",
+          roman: "YouTube ki services: subscribers, views, likes, comments, watch hours, shares — Premium aur Basic. Monetisation ke liye (4,000 watch hours + 1,000 subscribers), Premium safer hai.",
+          ur:    "یوٹیوب کی سروسز: subscribers، views، likes، comments، watch hours، shares۔ مونیٹائزیشن کے لیے پریمیم محفوظ ہے۔"
+        }
+      },
+      {
+        id: "hours",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["timing", "kab khulta", "kab kholte", "kab band", "online kab", "available kab", "hours", "kis time"]);
+          if (lang === "ur") return /(کب کھلتا|گھنٹے|اوقات|دستیاب)/.test(t);
+          return /\b(open\s+(hours|times)|business\s+hours|working\s+hours|when\s+(are\s+you|do\s+you)\s+(open|available)|are\s+you\s+(open|online)|24\s*\/?\s*7)\b/i.test(t);
+        },
+        reply: {
+          en:    "Our system accepts orders 24/7 — you can place an order anytime. Our human team usually replies on WhatsApp within minutes during 10 AM–11 PM PKT, and within a few hours otherwise.",
+          roman: "Order 24/7 place kar sakte ho — system hamesha chalu hai. WhatsApp pe humari team 10 AM–11 PM PKT me chand minute me reply karti hai, baqi waqt bhi kuch ghanton me.",
+          ur:    "آرڈر 24/7 لیا جا سکتا ہے۔ واٹس ایپ پر ہماری ٹیم 10 صبح سے 11 رات تک چند منٹ میں جواب دیتی ہے۔"
+        }
+      },
+      {
+        id: "about",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["growvia kya", "tum kon", "tum kya", "company kya", "tumhari company", "growvia kon", "kon ho tum", "konsa platform"]);
+          if (lang === "ur") return /(آپ کون|آپ کیا|کمپنی کے بارے|گرو ویا کیا)/.test(t);
+          return /\b(who\s+(are|r)\s+you|what\s+is\s+(growvia|this)|tell\s+me\s+about|about\s+(growvia|you|your\s+(company|service))|company\s+info)\b/i.test(t);
+        },
+        reply: {
+          en:    "{brand} is a Pakistan-based ethical social media growth service. We help creators, brands and small businesses grow on Instagram, TikTok, Facebook, YouTube, X (Twitter) and LinkedIn — with real, safe, professional delivery. No signup needed. No fraud. No shady tactics.",
+          roman: "{brand} Pakistan ki ek ethical social media growth service hai. Hum creators, brands aur small businesses ko Instagram, TikTok, Facebook, YouTube, X aur LinkedIn pe grow karne me madad dete hain — real, safe aur professional tareeqay se. Koi signup nahi, koi fraud nahi.",
+          ur:    "{brand} پاکستان کی ایک اخلاقی سوشل میڈیا گروتھ سروس ہے۔ ہم تخلیق کاروں اور برانڈز کو محفوظ اور پروفیشنل طریقے سے بڑھنے میں مدد دیتے ہیں۔ کوئی سائن اپ نہیں، کوئی دھوکا نہیں۔"
+        }
+      },
+      {
+        id: "account_password",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["password", "login details", "account details", "id password", "id de", "id mangwa"]);
+          if (lang === "ur") return /(پاس ورڈ|لاگ ان|اکاؤنٹ کی تفصیلات)/.test(t);
+          return /\b(password|login\s+details|account\s+(details|info)|share\s+my\s+(login|password)|need\s+my\s+(login|password))\b/i.test(t);
+        },
+        reply: {
+          en:    "We never ask for your password or login details — that would be unsafe and against platform rules. We only need your public profile link (or the post URL) and quantity. Anyone asking for your password is a scammer — please report them.",
+          roman: "Hum kabhi password ya login details nahi mangtay — yeh unsafe hai aur platform rules ke khilaf hai. Sirf public profile ka link (ya post URL) aur quantity chahiye. Agar koi password mangay to wo scammer hai — report kar dein.",
+          ur:    "ہم کبھی پاس ورڈ نہیں مانگتے — یہ غیر محفوظ ہے۔ صرف پبلک پروفائل لنک اور مقدار درکار ہے۔ اگر کوئی پاس ورڈ مانگے تو وہ سکیمر ہے۔"
+        }
+      },
+      {
+        id: "drop_refill",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["drop", "drop ho", "kam ho", "ghat", "ghatt", "wapis kam", "fall", "girna", "girgaye", "refill"]);
+          if (lang === "ur") return /(گر گئے|کم ہو|ریفل|واپس کم)/.test(t);
+          return /\b(drop(s|ped|ping)?|fall(s|en|ing)?|losing\s+followers|disappear|unfollow|refill)\b/i.test(t);
+        },
+        reply: {
+          en:    "Premium orders rarely drop and come with a 30-day refill guarantee — if any drop, we top it back up free. Basic orders are automated and may see a small percentage drop over time (no refill on Basic). For zero-drop, always pick Premium.",
+          roman: "Premium orders me drop rare hota hai aur 30-din ka refill guarantee bhi milta hai — agar drop ho jaye to free top-up kar dete hain. Basic me automated hota hai, thora drop ho sakta hai (refill nahi). Zero-drop ke liye hamesha Premium chunein.",
+          ur:    "پریمیم آرڈرز میں کم ہی گرتے ہیں اور 30 دن کا ریفل گارنٹی ہے — مفت دوبارہ مکمل کر دیں گے۔ بیسک میں تھوڑا گر سکتا ہے۔ زیرو ڈراپ کے لیے ہمیشہ پریمیم منتخب کریں۔"
+        }
       }
     ];
 
@@ -2073,6 +2230,61 @@
       roman: "Iska theek jawab mere paas nahi hai. Specific kisi cheez ke liye humari team WhatsApp pe foran reply karti hai — neechay right me green WhatsApp button dabayein.",
       ur:    "اس کا میرے پاس صحیح جواب نہیں ہے۔ تفصیلی سوال کے لیے براہ راست واٹس ایپ پر رابطہ کریں۔"
     };
+
+    /* ── Soft clarification when message is short/ambiguous ── */
+    var CLARIFY = {
+      en:    "I want to give you the right answer. Are you asking about pricing, delivery time, how to order, or something else?",
+      roman: "Behtar jawab dene ke liye thora aur batayein — rates, delivery time, order kaisay karna hai, ya kuch aur?",
+      ur:    "بہتر جواب دینے کے لیے تھوڑا اور بتائیں — قیمت، ڈیلیوری کا وقت، آرڈر کا طریقہ، یا کچھ اور؟"
+    };
+
+    /* ── Keyword scoring fallback (catches typos / partial questions) ── */
+    var INTENT_KEYWORDS = {
+      pricing:           ["price","rate","cost","kitna","kitne","paise","paisay","rupay","qeemat","kimat","سعر","قیمت","ریٹ"],
+      how_to_order:      ["order","place","kese","kaise","kis tarah","kese karna","کیسے","آرڈر"],
+      delivery_time:     ["delivery","time","kab","when","ghante","din","ڈیلیوری","وقت","کب"],
+      payment:           ["payment","pay","jazzcash","easypaisa","sadapay","nayapay","bank","pmt","ادائیگی","پیمنٹ"],
+      premium_vs_basic:  ["premium","basic","quality","real","fake","farq","difference","پریمیم","بیسک"],
+      track_order:       ["track","status","order id","grv","کہاں","ٹریک","ٹریکنگ"],
+      promo:             ["promo","discount","coupon","code","offer","پرومو","ڈسکاؤنٹ","کوڈ"],
+      bulk:              ["bulk","multiple","many","several","kayi","sare","بلک","کئی"],
+      refund:            ["refund","money back","cancel","wapas","wapsi","ریفنڈ","واپس"],
+      safety_ethics:     ["safe","secure","ban","danger","risk","khatra","محفوظ","خطرہ"],
+      marketing:         ["marketing","campaign","strategy","long term","مارکیٹنگ","مہم"],
+      contact:           ["contact","whatsapp","number","reach","rabta","baat","رابطہ","واٹس ایپ"],
+      hours:             ["timing","hours","kab khulta","online","available","24","کب کھلتا","گھنٹے"],
+      about:             ["growvia","company","about","kon","kya hai","کون","کیا ہے","کمپنی"],
+      account_password:  ["password","login","id","credentials","پاس ورڈ","لاگ ان"],
+      drop_refill:       ["drop","fall","kam","ghat","ghatt","refill","گر","کم","ریفل"],
+      minimum_order:     ["minimum","min","kam se kam","sab se kam","کم سے کم","کم از کم"],
+      why_us:            ["why","different","better","alag","competitor","کیوں","مختلف"],
+      proof:             ["proof","screenshot","sample","example","saboot","ثبوت","تصویر"],
+      platform_instagram:["instagram","insta","ig","انسٹاگرام"],
+      platform_tiktok:   ["tiktok","tik tok","tt","ٹک ٹاک"],
+      platform_youtube:  ["youtube","yt","یوٹیوب"]
+    };
+
+    function scoreIntents(text) {
+      var t = String(text || "").toLowerCase();
+      var scores = {};
+      Object.keys(INTENT_KEYWORDS).forEach(function(intent) {
+        var kws = INTENT_KEYWORDS[intent];
+        var s = 0;
+        for (var i = 0; i < kws.length; i++) {
+          if (t.indexOf(kws[i]) !== -1) s++;
+        }
+        if (s > 0) scores[intent] = s;
+      });
+      // Pick best
+      var best = null, bestScore = 0;
+      Object.keys(scores).forEach(function(k) {
+        if (scores[k] > bestScore) { best = k; bestScore = scores[k]; }
+      });
+      return { intent: best, score: bestScore };
+    }
+
+    /* ── Conversation context — remembers last topic ── */
+    var lastIntent = null;
 
     /* ── Custom admin Q&A check ── */
     function matchCustomQA(text) {
@@ -2087,19 +2299,210 @@
       return null;
     }
 
-    /* ── Generate reply ── */
+    function intentById(id) {
+      for (var i = 0; i < INTENTS.length; i++) if (INTENTS[i].id === id) return INTENTS[i];
+      return null;
+    }
+
+    /* ── Generate reply (returns { reply, intent, lang }) ── */
     function generateReply(text) {
       var lang = detectLang(text);
+      var clean = String(text || '').trim();
+
       // Admin-defined custom Q&A wins
       var custom = matchCustomQA(text);
-      if (custom) return tag(custom);
-      // Built-in intents
+      if (custom) {
+        lastIntent = 'custom';
+        return { reply: tag(custom), intent: 'custom', lang: lang };
+      }
+
+      // Pass 1: precision match-functions (in priority order)
       for (var i = 0; i < INTENTS.length; i++) {
         if (INTENTS[i].match(text, lang)) {
-          return tag(INTENTS[i].reply[lang] || INTENTS[i].reply.en);
+          lastIntent = INTENTS[i].id;
+          return { reply: tag(INTENTS[i].reply[lang] || INTENTS[i].reply.en), intent: INTENTS[i].id, lang: lang };
         }
       }
-      return FALLBACK[lang] || FALLBACK.en;
+
+      // Pass 2: keyword scoring fallback (handles typos, partial questions)
+      var scored = scoreIntents(text);
+      if (scored.intent && scored.score > 0) {
+        var found = intentById(scored.intent);
+        if (found) {
+          lastIntent = found.id;
+          return { reply: tag(found.reply[lang] || found.reply.en), intent: found.id, lang: lang };
+        }
+      }
+
+      // Pass 3: very short ambiguous input — ask for clarification
+      if (clean.split(/\s+/).length <= 2) {
+        return { reply: CLARIFY[lang] || CLARIFY.en, intent: 'clarify', lang: lang };
+      }
+
+      // Pass 4: context-aware nudge — if we have a recent topic, suggest it
+      if (lastIntent && lastIntent !== 'fallback' && lastIntent !== 'clarify') {
+        var ctx = intentById(lastIntent);
+        if (ctx) {
+          var hint = {
+            en:    "I'm not 100% sure, but our team on WhatsApp can answer instantly. In the meantime, here's what I can share related to your last topic:\n\n",
+            roman: "Mujhe pura yakeen nahi, lekin humari team WhatsApp pe foran reply karti hai. Filhal aapke pichlay sawal ke baray me yeh batata hoon:\n\n",
+            ur:    "مجھے یقین نہیں، لیکن ہماری ٹیم واٹس ایپ پر فوری جواب دے گی۔ فی الحال آپ کے پچھلے سوال کے بارے میں یہ بتاتا ہوں:\n\n"
+          };
+          return { reply: (hint[lang] || hint.en) + tag(ctx.reply[lang] || ctx.reply.en), intent: 'fallback', lang: lang };
+        }
+      }
+
+      return { reply: FALLBACK[lang] || FALLBACK.en, intent: 'fallback', lang: lang };
+    }
+
+    /* ── Dynamic follow-up suggestions per intent + language ── */
+    var SUGGESTIONS = {
+      greeting: {
+        en:    ["How do I order?", "What are your rates?", "Delivery time?", "Is it safe?"],
+        roman: ["Order kese karoon?", "Rates kya hain?", "Delivery time?", "Account safe rahega?"],
+        ur:    ["آرڈر کیسے کروں؟", "ریٹس کیا ہیں؟", "ڈیلیوری کا وقت؟", "اکاؤنٹ محفوظ ہے؟"]
+      },
+      how_to_order: {
+        en:    ["Payment methods?", "Delivery time?", "Bulk orders?", "Track an order"],
+        roman: ["Payment kese karoon?", "Delivery time?", "Bulk order?", "Order track karoon"],
+        ur:    ["پیمنٹ کیسے کروں؟", "ڈیلیوری کا وقت؟", "بلک آرڈر؟", "آرڈر ٹریک کریں"]
+      },
+      pricing: {
+        en:    ["Premium vs Basic?", "Any discount code?", "Bulk order discount?", "Payment methods?"],
+        roman: ["Premium aur Basic me farq?", "Koi promo code?", "Bulk pe discount?", "Payment methods?"],
+        ur:    ["پریمیم اور بیسک میں فرق؟", "کوئی پرومو کوڈ؟", "بلک پر ڈسکاؤنٹ؟", "پیمنٹ کے طریقے؟"]
+      },
+      services_platforms: {
+        en:    ["Pricing for Instagram?", "Premium vs Basic?", "How do I order?", "Delivery time?"],
+        roman: ["Instagram ke rates?", "Premium vs Basic?", "Order kese?", "Kab milega?"],
+        ur:    ["انسٹاگرام کی قیمت؟", "پریمیم اور بیسک؟", "آرڈر کیسے؟", "کب ملے گا؟"]
+      },
+      premium_vs_basic: {
+        en:    ["Is it safe for my account?", "Pricing?", "Delivery time?", "Refund policy?"],
+        roman: ["Account safe rahega?", "Rates kya hain?", "Kab milega?", "Refund hota hai?"],
+        ur:    ["اکاؤنٹ محفوظ رہے گا؟", "قیمت کیا ہے؟", "کب ملے گا؟", "ریفنڈ ہوتا ہے؟"]
+      },
+      delivery_time: {
+        en:    ["Track my order", "Premium vs Basic?", "What if it stops?", "Payment methods?"],
+        roman: ["Order track karoon", "Premium vs Basic?", "Agar drop ho jaye?", "Payment methods?"],
+        ur:    ["آرڈر ٹریک کریں", "پریمیم اور بیسک؟", "اگر کم ہو جائے؟", "پیمنٹ کے طریقے؟"]
+      },
+      payment: {
+        en:    ["How do I order?", "Is my payment safe?", "Any discount code?", "Refund policy?"],
+        roman: ["Order kese karoon?", "Payment safe hai?", "Koi promo code?", "Refund policy?"],
+        ur:    ["آرڈر کیسے کروں؟", "پیمنٹ محفوظ ہے؟", "پرومو کوڈ؟", "ریفنڈ پالیسی؟"]
+      },
+      track_order: {
+        en:    ["When will it complete?", "What if it stops?", "Contact support", "Place another order"],
+        roman: ["Kab complete hoga?", "Agar drop ho jaye?", "Contact support", "Naya order karoon"],
+        ur:    ["کب مکمل ہوگا؟", "اگر گر جائے؟", "سپورٹ سے رابطہ", "نیا آرڈر کریں"]
+      },
+      promo: {
+        en:    ["How do I order?", "Bulk order discount?", "Premium vs Basic?", "Payment methods?"],
+        roman: ["Order kese karoon?", "Bulk pe discount?", "Premium vs Basic?", "Payment methods?"],
+        ur:    ["آرڈر کیسے کروں؟", "بلک پر ڈسکاؤنٹ؟", "پریمیم اور بیسک؟", "پیمنٹ کے طریقے؟"]
+      },
+      bulk: {
+        en:    ["Any bulk discount?", "Pricing?", "Delivery time?", "Payment methods?"],
+        roman: ["Bulk discount?", "Rates?", "Kab milega?", "Payment kese?"],
+        ur:    ["بلک ڈسکاؤنٹ؟", "قیمت؟", "کب ملے گا؟", "پیمنٹ کیسے؟"]
+      },
+      refund: {
+        en:    ["Contact support", "Track my order", "Is it safe?", "Premium vs Basic?"],
+        roman: ["Support se baat karoon", "Order track karoon", "Account safe rahega?", "Premium vs Basic?"],
+        ur:    ["سپورٹ سے رابطہ", "آرڈر ٹریک کریں", "اکاؤنٹ محفوظ ہے؟", "پریمیم اور بیسک؟"]
+      },
+      safety_ethics: {
+        en:    ["Premium vs Basic?", "Refund policy?", "How do I order?", "Pricing?"],
+        roman: ["Premium vs Basic?", "Refund policy?", "Order kese?", "Rates kya hain?"],
+        ur:    ["پریمیم اور بیسک؟", "ریفنڈ پالیسی؟", "آرڈر کیسے؟", "قیمت؟"]
+      },
+      marketing: {
+        en:    ["Contact on WhatsApp", "What services?", "Pricing?", "Bulk orders?"],
+        roman: ["WhatsApp pe baat karoon", "Konsi services?", "Rates?", "Bulk order?"],
+        ur:    ["واٹس ایپ پر بات", "کونسی سروسز؟", "قیمت؟", "بلک آرڈر؟"]
+      },
+      hours: {
+        en:    ["Contact support", "How do I order?", "Delivery time?", "Track an order"],
+        roman: ["Contact support", "Order kese karoon?", "Delivery time?", "Order track"],
+        ur:    ["سپورٹ سے رابطہ", "آرڈر کیسے کروں؟", "ڈیلیوری کا وقت؟", "آرڈر ٹریک"]
+      },
+      about: {
+        en:    ["What services?", "Is it safe?", "How do I order?", "Pricing?"],
+        roman: ["Konsi services?", "Account safe?", "Order kese?", "Rates?"],
+        ur:    ["کونسی سروسز؟", "اکاؤنٹ محفوظ؟", "آرڈر کیسے؟", "قیمت؟"]
+      },
+      account_password: {
+        en:    ["Is it safe?", "How do I order?", "Premium vs Basic?", "Contact support"],
+        roman: ["Account safe rahega?", "Order kese?", "Premium vs Basic?", "Contact support"],
+        ur:    ["اکاؤنٹ محفوظ؟", "آرڈر کیسے؟", "پریمیم اور بیسک؟", "سپورٹ سے رابطہ"]
+      },
+      drop_refill: {
+        en:    ["Premium vs Basic?", "Refund policy?", "Contact support", "How do I order?"],
+        roman: ["Premium vs Basic?", "Refund hota hai?", "Contact support", "Order kese?"],
+        ur:    ["پریمیم اور بیسک؟", "ریفنڈ ہوتا ہے؟", "سپورٹ سے رابطہ", "آرڈر کیسے؟"]
+      },
+      contact: {
+        en:    ["How do I order?", "Track an order", "Pricing?", "Any discount?"],
+        roman: ["Order kese karoon?", "Order track", "Rates?", "Koi discount?"],
+        ur:    ["آرڈر کیسے کروں؟", "آرڈر ٹریک کریں", "قیمت؟", "کوئی ڈسکاؤنٹ؟"]
+      },
+      thanks: {
+        en:    ["How do I order?", "What services?", "Pricing?", "Contact support"],
+        roman: ["Order kese karoon?", "Konsi services?", "Rates?", "Contact support"],
+        ur:    ["آرڈر کیسے کروں؟", "کونسی سروسز؟", "قیمت؟", "سپورٹ سے رابطہ"]
+      },
+      bye: {
+        en:    ["Place an order", "Contact support"],
+        roman: ["Naya order", "Contact support"],
+        ur:    ["نیا آرڈر", "سپورٹ سے رابطہ"]
+      },
+      minimum_order: {
+        en:    ["Pricing?", "How do I order?", "Bulk orders?", "Delivery time?"],
+        roman: ["Rates kya hain?", "Order kese?", "Bulk order?", "Delivery time?"],
+        ur:    ["قیمت؟", "آرڈر کیسے؟", "بلک آرڈر؟", "ڈیلیوری کا وقت؟"]
+      },
+      why_us: {
+        en:    ["Is it safe?", "How do I order?", "Pricing?", "Refund policy?"],
+        roman: ["Account safe?", "Order kese?", "Rates?", "Refund hota hai?"],
+        ur:    ["اکاؤنٹ محفوظ؟", "آرڈر کیسے؟", "قیمت؟", "ریفنڈ پالیسی؟"]
+      },
+      proof: {
+        en:    ["Contact support", "Read testimonials", "Is it safe?", "How do I order?"],
+        roman: ["Support se baat", "Testimonials dekhein", "Safe hai?", "Order kese?"],
+        ur:    ["سپورٹ سے رابطہ", "تبصرے دیکھیں", "محفوظ ہے؟", "آرڈر کیسے؟"]
+      },
+      platform_instagram: {
+        en:    ["Premium vs Basic?", "How do I order?", "Delivery time?", "Pricing?"],
+        roman: ["Premium vs Basic?", "Order kese?", "Kab milega?", "Rates?"],
+        ur:    ["پریمیم اور بیسک؟", "آرڈر کیسے؟", "کب ملے گا؟", "قیمت؟"]
+      },
+      platform_tiktok: {
+        en:    ["Premium vs Basic?", "How do I order?", "Delivery time?", "Pricing?"],
+        roman: ["Premium vs Basic?", "Order kese?", "Kab milega?", "Rates?"],
+        ur:    ["پریمیم اور بیسک؟", "آرڈر کیسے؟", "کب ملے گا؟", "قیمت؟"]
+      },
+      platform_youtube: {
+        en:    ["Premium vs Basic?", "Delivery time?", "Watch hours pricing?", "How do I order?"],
+        roman: ["Premium vs Basic?", "Kab milega?", "Watch hours ke rates?", "Order kese?"],
+        ur:    ["پریمیم اور بیسک؟", "کب ملے گا؟", "Watch hours قیمت؟", "آرڈر کیسے؟"]
+      },
+      clarify: {
+        en:    ["Pricing", "Delivery time", "How do I order?", "Is it safe?"],
+        roman: ["Rates", "Delivery time", "Order kese?", "Safe hai?"],
+        ur:    ["قیمت", "ڈیلیوری کا وقت", "آرڈر کیسے؟", "محفوظ ہے؟"]
+      },
+      fallback: {
+        en:    ["How do I order?", "Pricing?", "Contact support", "Track an order"],
+        roman: ["Order kese karoon?", "Rates?", "Support se baat", "Order track"],
+        ur:    ["آرڈر کیسے کروں؟", "قیمت؟", "سپورٹ سے رابطہ", "آرڈر ٹریک"]
+      }
+    };
+
+    function getSuggestions(intent, lang) {
+      var bucket = SUGGESTIONS[intent] || SUGGESTIONS.fallback;
+      var items = bucket[lang] || bucket.en || [];
+      return items.slice(0, 3); // show 3 chips after each reply
     }
 
     /* ── UI helpers ── */
@@ -2148,12 +2551,12 @@
       var welcome = (appConfig.chatbot && appConfig.chatbot.welcomeMessage) ||
         "Hi! I am the " + brand() + " assistant. Ask me anything in English, Urdu or Roman Urdu — about pricing, services, delivery, payment, anything.";
       addMessage(tag(welcome), "bot");
+      // Initial chips — mixed language to invite questions
       setQuickReplies([
         "How do I order?",
         "Rates kya hain?",
         "Delivery time?",
-        "Premium vs Basic?",
-        "Payment methods"
+        "Premium vs Basic?"
       ]);
     }
 
@@ -2190,8 +2593,10 @@
       showTyping();
       setTimeout(function() {
         hideTyping();
-        var reply = generateReply(text);
-        addMessage(reply, "bot");
+        var result = generateReply(text);
+        addMessage(result.reply, "bot");
+        // Show contextual next-suggestions based on what they just asked
+        setQuickReplies(getSuggestions(result.intent, result.lang));
       }, 450 + Math.random() * 350);
     });
 

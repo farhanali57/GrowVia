@@ -441,12 +441,12 @@ app.post('/api/orders', rateLimitOrder, (req, res) => {
   const whatsapp = normalizePkPhone(body.whatsapp);
   if (!name || !whatsapp || whatsapp === '+92') return res.status(400).json({ error: 'Name and phone number are required.' });
 
-  // Promo handling
+  // Promo handling — important: look up promo INSIDE d so mutation persists on save
   const rawSubtotal = Math.max(0, Number(String(body.subtotalAmount || '').replace(/[^\d]/g, '')) || 0);
   let promoLine = '';
   let promoCode = '';
   let promoDiscount = 0;
-  const promo = findActivePromo(body.promoCode);
+  const promo = findActivePromo(body.promoCode, d);
   if (promo && rawSubtotal > 0) {
     const orderMode = String(body.mode || 'single').trim().toLowerCase();
     const appliesTo = normalizeAppliesTo(promo.appliesTo);
@@ -456,10 +456,12 @@ app.post('/api/orders', rateLimitOrder, (req, res) => {
       promoLine = promo.type === 'percent'
         ? promo.code + ' (' + promo.value + '% off)'
         : promo.code + ' (₨' + promo.value.toLocaleString() + ' off)';
-      promo.uses = (promo.uses || 0) + 1;
+      promo.uses = (promo.uses || 0) + 1; // ← persists now via shared d
     }
   }
 
+  const subtotalStr = rawSubtotal ? '₨' + rawSubtotal.toLocaleString() : '';
+  const discountStr = promoDiscount ? '₨' + promoDiscount.toLocaleString() : '';
   const finalTotal = promoDiscount > 0 && rawSubtotal > 0
     ? '₨' + Math.max(0, rawSubtotal - promoDiscount).toLocaleString()
     : String(body.totalPrice || '—').trim();
@@ -702,8 +704,9 @@ app.get('/logout', (req, res) => {
 });
 
 /* ── PROMO CODES ── */
-function findActivePromo(code) {
-  const d = loadData();
+// Lookup an active promo. Pass a data object to mutate-and-save the same instance.
+function findActivePromo(code, data) {
+  const d = data || loadData();
   const c = String(code || '').trim().toUpperCase();
   if (!c) return null;
   const p = (d.promos || []).find(x => (x.code || '').toUpperCase() === c);
@@ -746,6 +749,7 @@ app.post('/api/promos', requireAuth, requireManagerOrAdmin, (req, res) => {
     maxUses:   Math.max(0, Number(req.body.maxUses) || 0),
     uses:      0,
     appliesTo: normalizeAppliesTo(req.body.appliesTo),
+    isPrivate: parseBool(req.body.isPrivate),
     disabled:  false,
     createdAt: new Date().toISOString()
   };
