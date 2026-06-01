@@ -21,6 +21,47 @@
   }
   document.querySelectorAll("[data-theme-toggle]").forEach(bindThemeToggle);
 
+  /* ---------- HAMBURGER / MOBILE NAV ---------- */
+  (function() {
+    var btn  = document.getElementById("navHamburger");
+    var menu = document.getElementById("navActions");
+    if (!btn || !menu) return;
+
+    // Inject scrim once
+    var scrim = document.createElement("div");
+    scrim.className = "nav-scrim";
+    document.body.appendChild(scrim);
+
+    function closeMenu() {
+      btn.classList.remove("open");
+      menu.classList.remove("open");
+      scrim.classList.remove("show");
+      btn.setAttribute("aria-expanded", "false");
+      document.body.classList.remove("nav-open");
+    }
+    function toggleMenu() {
+      var willOpen = !menu.classList.contains("open");
+      btn.classList.toggle("open", willOpen);
+      menu.classList.toggle("open", willOpen);
+      scrim.classList.toggle("show", willOpen);
+      btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+      document.body.classList.toggle("nav-open", willOpen);
+    }
+    btn.addEventListener("click", function(e){ e.stopPropagation(); toggleMenu(); });
+    scrim.addEventListener("click", closeMenu);
+    // Close when clicking any action inside the menu
+    menu.addEventListener("click", function(e) {
+      var hit = e.target.closest("a, .nav-pricing-btn, .nav-track-btn, .btn-about");
+      if (hit) closeMenu();
+    });
+    window.addEventListener("resize", function() {
+      if (window.innerWidth > 860) closeMenu();
+    });
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") closeMenu();
+    });
+  })();
+
   /* ---------- THEME-AWARE LOGO URL ---------- */
   window.getThemeLogoUrl = function () {
     var theme = root.getAttribute("data-theme") || "dark";
@@ -149,6 +190,30 @@
     if (e.key === "Escape" && overlay.classList.contains("open")) closeAbout();
   });
 
+  /* ---------- HELP OVERLAY ---------- */
+  (function() {
+    var help = document.getElementById("helpOverlay");
+    var btn  = document.getElementById("helpFloat");
+    var closeBtn = document.getElementById("helpClose");
+    if (!help) return;
+    function open() {
+      help.classList.add("show");
+      document.body.classList.add("no-scroll");
+      help.scrollTop = 0;
+      observeReveals(help);
+      setTimeout(function() { help.querySelectorAll(".reveal").forEach(function(el){ el.classList.add("in"); }); }, 350);
+    }
+    function close() {
+      help.classList.remove("show");
+      document.body.classList.remove("no-scroll");
+    }
+    if (btn) btn.addEventListener("click", open);
+    if (closeBtn) closeBtn.addEventListener("click", close);
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape" && help.classList.contains("show")) close();
+    });
+  })();
+
   /* ---------- FAQ ACCORDION ---------- */
   var faqList = document.getElementById("faqList");
   if (faqList) {
@@ -239,6 +304,7 @@
   var appConfig = {
     allowSingleOrder: true,
     allowBulkOrder: true,
+    allowPromoCode: false,
     offerActive: false,
     offerText: "",
     brandName: "GrowVia",
@@ -246,8 +312,79 @@
     logoImageUrl: "",
     offerStart: "",
     offerEnd: "",
-    whatsappNumber: "3143632195"
+    whatsappNumber: "3143632195",
+    heroStats: [
+      { number: '12M+',  label: 'Engagements delivered', visible: true },
+      { number: '40k+',  label: 'Orders completed',      visible: true },
+      { number: '4.9/5', label: 'Average rating',        visible: true }
+    ],
+    help: { enabled: true },
+    chatbot: { enabled: true, welcomeMessage: '', customQA: [] }
   };
+
+  // Render hero stats from config
+  function renderHeroStats() {
+    var stats = Array.isArray(appConfig.heroStats) ? appConfig.heroStats : [];
+    document.querySelectorAll('#heroStats .stat').forEach(function(el, i) {
+      var s = stats[i];
+      if (!s) { el.style.display = 'none'; return; }
+      el.style.display = s.visible ? '' : 'none';
+      // Smart split: digits stay big, rest goes in <span>
+      var num = String(s.number || '').trim();
+      var m = num.match(/^([\d.,]+)(.*)$/);
+      var numEl = el.querySelector('[data-stat-num]');
+      var labelEl = el.querySelector('[data-stat-label]');
+      if (numEl) {
+        if (m && m[2]) numEl.innerHTML = m[1] + '<span>' + m[2] + '</span>';
+        else numEl.textContent = num;
+      }
+      if (labelEl) labelEl.textContent = s.label || '';
+    });
+  }
+
+  // Render help overlay content from config
+  function renderHelpContent() {
+    var h = appConfig.help || {};
+    var btn = document.getElementById('helpFloat');
+    if (btn) btn.style.display = (h.enabled === false) ? 'none' : '';
+
+    function set(id, val) { var el = document.getElementById(id); if (el && val !== undefined) el.textContent = val; }
+    set('helpTitle',          h.title);
+    set('helpIntro',          h.intro);
+    set('helpFillTitle',      h.fillTitle);
+    set('helpFillBody',       h.fillBody);
+    set('helpProblemTitle',   h.problemTitle);
+    set('helpProblemBody',    h.problemBody);
+    set('helpMarketingTitle', h.marketingTitle);
+    set('helpMarketingBody',  h.marketingBody);
+
+    // Wire WhatsApp CTAs in help cards
+    var wa = (appConfig.whatsappNumber || '3143632195').replace(/\D/g, '');
+    var problemMsg   = encodeURIComponent('Hi! I am facing an issue and need help with my order on ' + (appConfig.brandName || 'GrowVia') + '.');
+    var marketingMsg = encodeURIComponent('Hi! I am interested in discussing a proper marketing campaign with ' + (appConfig.brandName || 'GrowVia') + '.');
+    var p = document.getElementById('helpProblemWa');
+    var m = document.getElementById('helpMarketingWa');
+    if (p) p.href = 'https://wa.me/' + wa + '?text=' + problemMsg;
+    if (m) m.href = 'https://wa.me/' + wa + '?text=' + marketingMsg;
+  }
+
+  // Show promo row only when admin allows AND pricing has been computed
+  function updatePromoRowVisibility() {
+    var row = document.getElementById('promoRow');
+    if (!row) return;
+    if (!appConfig.allowPromoCode) {
+      row.style.display = 'none';
+      return;
+    }
+    var hasPrice = false;
+    if (typeof orderMode !== 'undefined' && orderMode === 'bulk') {
+      hasPrice = !!(typeof bulkItems !== 'undefined' && bulkItems && bulkItems.length > 0);
+    } else if (typeof computePrice === 'function') {
+      var p = computePrice();
+      hasPrice = !!(p && p.total > 0);
+    }
+    row.style.display = hasPrice ? '' : 'none';
+  }
 
   function formatOfferDate(value) {
     var date = value ? new Date(value) : null;
@@ -263,6 +400,79 @@
   var offerInterval = null;
 
   var _lastOfferKey = '';
+  var _offerShownThisSession = false;
+  var _lastPromoCode = '';
+
+  function refreshOfferPromo(code) {
+    var wrap   = document.getElementById('floatingOfferPromo');
+    var codeEl = document.getElementById('floatingOfferCodeText');
+    var btn    = document.getElementById('floatingOfferCode');
+    var meta   = document.getElementById('floatingOfferCodeMeta');
+    if (!wrap || !codeEl || !btn || !meta) return;
+    code = String(code || '').trim().toUpperCase();
+    if (!code) { wrap.style.display = 'none'; _lastPromoCode = ''; return; }
+    fetch('/api/promos/validate/' + encodeURIComponent(code), { cache: 'no-store' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(p) {
+        if (!p || !p.valid) { wrap.style.display = 'none'; return; }
+        wrap.style.display = '';
+        codeEl.textContent = p.code;
+        btn.classList.remove('copied');
+
+        var rows = [];
+        var discount = p.type === 'percent' ? (p.value + '% off') : ('₨' + Number(p.value).toLocaleString() + ' off');
+        rows.push(
+          '<div class="floating-offer__promo-meta-row discount">' +
+            '<span class="floating-offer__promo-meta-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></span>' +
+            '<span><strong>' + discount + '</strong></span>' +
+          '</div>'
+        );
+        if (p.usesLeft !== null && p.usesLeft !== undefined) {
+          rows.push(
+            '<div class="floating-offer__promo-meta-row uses">' +
+              '<span class="floating-offer__promo-meta-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3"/></svg></span>' +
+              '<span><strong>' + p.usesLeft + '</strong> uses left</span>' +
+            '</div>'
+          );
+        } else {
+          rows.push(
+            '<div class="floating-offer__promo-meta-row uses">' +
+              '<span class="floating-offer__promo-meta-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="10"/></svg></span>' +
+              '<span>Unlimited uses</span>' +
+            '</div>'
+          );
+        }
+        if (p.expiry) {
+          var exp = new Date(p.expiry);
+          if (!isNaN(exp.getTime())) {
+            var when = exp.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+            rows.push(
+              '<div class="floating-offer__promo-meta-row expiry">' +
+                '<span class="floating-offer__promo-meta-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>' +
+                '<span>Valid until <strong>' + when + '</strong></span>' +
+              '</div>'
+            );
+          }
+        }
+        meta.innerHTML = rows.join('');
+
+        if (_lastPromoCode !== p.code) {
+          _lastPromoCode = p.code;
+          btn.onclick = function() {
+            navigator.clipboard.writeText(p.code).then(function() {
+              btn.classList.add('copied');
+              var prev = codeEl.textContent;
+              codeEl.textContent = 'Copied ✓';
+              setTimeout(function() {
+                codeEl.textContent = prev;
+                btn.classList.remove('copied');
+              }, 1400);
+            }).catch(function(){});
+          };
+        }
+      })
+      .catch(function() { wrap.style.display = 'none'; });
+  }
 
   function updateOfferBanner() {
     var timerWrap = document.getElementById("floatingTimerWrap");
@@ -276,17 +486,25 @@
 
     var text = appConfig.offerText || 'Special offer is active now!';
     var offerKey = text + '|' + (appConfig.offerEnd || '');
+    // Only reset the "closed" flag when the offer content actually changes
     if (offerKey !== _lastOfferKey) {
       try { localStorage.removeItem("growvia-offer-closed"); } catch(e){}
       _lastOfferKey = offerKey;
+      _offerShownThisSession = false;
     }
 
-    var hideFloating = localStorage.getItem("growvia-offer-closed") === "true";
+    var userClosed = localStorage.getItem("growvia-offer-closed") === "true";
 
-    if (floatingOffer && !hideFloating) {
-      if (floatingOfferText) floatingOfferText.textContent = text;
-      floatingOffer.classList.remove('pop-show');
-      void floatingOffer.offsetWidth;
+    // Always refresh banner text in case offer was edited
+    if (floatingOfferText) floatingOfferText.textContent = text;
+
+    // Attached promo code (if any)
+    refreshOfferPromo(appConfig.offerPromoCode);
+
+    // Pop the banner exactly once per session (or until offer text changes).
+    // Once user dismisses, never re-show until the offer itself changes.
+    if (floatingOffer && !userClosed && !_offerShownThisSession) {
+      _offerShownThisSession = true;
       setTimeout(function () { floatingOffer.classList.add('pop-show'); }, 800);
     }
 
@@ -493,12 +711,12 @@
     // ── Footer copyright
     var copyEls = document.querySelectorAll('.footer__bottom span');
     if (copyEls && copyEls.length > 0) {
-      copyEls[0].textContent = '© 2025 ' + bName + '. All Rights Reserved.';
+      copyEls[0].textContent = '© 2026 ' + bName + '. All Rights Reserved.';
     }
     // Overlay footer copyright
     var overlayCopy = document.querySelectorAll('.about-overlay .footer__bottom span');
     if (overlayCopy && overlayCopy.length > 0) {
-      overlayCopy[0].textContent = '© 2025 ' + bName + '. All Rights Reserved. · ' + bTag;
+      overlayCopy[0].textContent = '© 2026 ' + bName + '. All Rights Reserved. · ' + bTag;
     }
 
     // ── Footer tagline
@@ -552,6 +770,13 @@
     // ── Store for WhatsApp message footer
     window._growviaBrandName    = bName;
     window._growviaBrandTagline = bTag;
+
+    // Re-evaluate promo row visibility with the latest allowPromoCode flag
+    if (typeof updatePromoRowVisibility === 'function') updatePromoRowVisibility();
+
+    // Hero stats + help content (admin-controlled)
+    renderHeroStats();
+    renderHelpContent();
   }
 
   // Expose for theme-toggle reactive re-apply
@@ -669,6 +894,7 @@
       altEl.style.color = "";
       priceHint.textContent = "Enter a quantity";
     }
+    updatePromoRowVisibility();
   }
 
   ["f_platform", "f_service", "f_qty"].forEach(function (id) {
@@ -745,6 +971,9 @@
     }
 
     if (bPlatform) {
+      // Preserve current bulk selection across rebuilds
+      var prevPlatform = bPlatform.value;
+      var prevService  = bService ? bService.value : "";
       bPlatform.innerHTML = '<option value="" disabled selected hidden>Platform</option>';
       PLATFORMS.forEach(function (p) {
         var o = document.createElement("option");
@@ -752,6 +981,25 @@
         o.textContent = p.name;
         bPlatform.appendChild(o);
       });
+      // Re-apply previous platform if it still exists
+      if (prevPlatform && PLATFORMS.some(function(p){ return p.name === prevPlatform; })) {
+        bPlatform.value = prevPlatform;
+        // Rebuild services for this platform without firing change handler
+        var pf = platformByName(prevPlatform);
+        if (pf && bService) {
+          bService.innerHTML = '<option value="" disabled selected hidden>Service</option>';
+          pf.services.forEach(function(s) {
+            var o = document.createElement("option");
+            o.textContent = s;
+            bService.appendChild(o);
+          });
+          bService.disabled = false;
+          if (prevService && pf.services.indexOf(prevService) !== -1) {
+            bService.value = prevService;
+          }
+        }
+        setBulkPlatformIcon(prevPlatform);
+      }
     }
   }
 
@@ -922,9 +1170,99 @@
     return m ? parseInt(m[1].replace(/,/g, ""), 10) : 0;
   }
 
+  /* ── Structured bulk items state ── */
+  var bulkItems = []; // [{ id, platform, service, qty, link, price }]
+  var bulkItemsListEl = document.getElementById("bulkItemsList");
+  var bulkEmptyEl     = document.getElementById("bulkEmptyState");
+
+  function recomputeItemPrice(item) {
+    var p = computePriceFor(item.platform, item.service, Number(item.qty));
+    item.price = p ? Math.round(p.total) : 0;
+  }
+
+  function syncBulkTextarea() {
+    if (!bList) return;
+    var lines = bulkItems.map(function (it) {
+      var qtyStr = Number(it.qty || 0).toLocaleString("en-US");
+      var priceStr = it.price ? fmtPKR(it.price) : "—";
+      return it.platform + " — " + it.service + " — " + qtyStr + " — " + (it.link || "") + " — " + priceStr;
+    });
+    bList.value = lines.join("\n");
+  }
+
+  function renderBulkItems() {
+    if (!bulkItemsListEl) return;
+    bulkItemsListEl.innerHTML = "";
+    bulkItems.forEach(function (it, idx) {
+      var card = document.createElement("div");
+      card.className = "bulk-item";
+      card.dataset.id = it.id;
+
+      var pfObj = platformByName(it.platform);
+      var pfIcon = pfObj ? pfObj.icon : "";
+
+      card.innerHTML =
+        '<div class="bulk-item__main">' +
+          '<div class="bulk-item__head">' +
+            '<span class="bulk-item__num">' + (idx + 1) + '</span>' +
+            '<span class="bulk-item__platform">' +
+              '<span class="bulk-item__platform-icon">' + pfIcon + '</span>' +
+              (it.platform || '—') +
+            '</span>' +
+            '<span class="bulk-item__service">' + (it.service || '—') + '</span>' +
+          '</div>' +
+          '<div class="bulk-item__row">' +
+            '<div class="bulk-item__field">' +
+              '<label>Quantity</label>' +
+              '<input type="number" min="1" class="js-edit-qty" value="' + (it.qty || '') + '" />' +
+            '</div>' +
+            '<div class="bulk-item__field">' +
+              '<label>Post / Profile Link</label>' +
+              '<input type="url" class="js-edit-link" value="' + (it.link || '').replace(/"/g, '&quot;') + '" placeholder="https://…" />' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="bulk-item__side">' +
+          '<span class="bulk-item__price">' + (it.price ? fmtPKR(it.price) : '—') + '</span>' +
+          '<button type="button" class="bulk-item__remove" title="Remove item" aria-label="Remove item">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>' +
+          '</button>' +
+        '</div>';
+
+      var qtyInput  = card.querySelector('.js-edit-qty');
+      var linkInput = card.querySelector('.js-edit-link');
+      var priceEl   = card.querySelector('.bulk-item__price');
+      var removeBtn = card.querySelector('.bulk-item__remove');
+
+      qtyInput.addEventListener("input", function () {
+        var v = Number(qtyInput.value) || 0;
+        it.qty = v > 0 ? v : '';
+        qtyInput.classList.toggle("is-invalid", !v);
+        recomputeItemPrice(it);
+        priceEl.textContent = it.price ? fmtPKR(it.price) : '—';
+        syncBulkTextarea();
+        countItems();
+      });
+      linkInput.addEventListener("input", function () {
+        it.link = linkInput.value.trim();
+        var bad = it.link && !isValidUrl(it.link);
+        linkInput.classList.toggle("is-invalid", bad);
+        syncBulkTextarea();
+      });
+      removeBtn.addEventListener("click", function () {
+        bulkItems = bulkItems.filter(function (x) { return x.id !== it.id; });
+        syncBulkTextarea();
+        renderBulkItems();
+        countItems();
+      });
+
+      bulkItemsListEl.appendChild(card);
+    });
+    if (bulkEmptyEl) bulkEmptyEl.style.display = bulkItems.length ? "none" : "";
+  }
+
   function computeBulkTotal() {
-    return bList.value.split("\n").map(function (l) { return l.trim(); }).filter(Boolean)
-      .reduce(function (sum, line) { return sum + parsePkrValue(line); }, 0);
+    return bulkItems.reduce(function (sum, it) { return sum + (Number(it.price) || 0); }, 0);
   }
 
   function updateBulkSummary() {
@@ -937,6 +1275,7 @@
       bulkTotalEl.textContent = total ? fmtPKR(total) : "—";
     }
     if (bulkPriceSummary) bulkPriceSummary.classList.toggle("show", total > 0);
+    updatePromoRowVisibility();
   }
 
   function generateOrderId() {
@@ -967,12 +1306,11 @@
   });
 
   function countItems() {
-    var n = bList.value.split("\n").map(function (l) { return l.trim(); }).filter(Boolean).length;
+    var n = bulkItems.length;
     bulkCount.textContent = n + (n === 1 ? " item in your order" : " items in your order");
     updateBulkSummary();
     return n;
   }
-  bList.addEventListener("input", countItems);
 
   bulkAdd.addEventListener("click", function () {
     var miss = false;
@@ -987,13 +1325,19 @@
     }
     if (miss) return;
 
-    var itemPrice = computePriceFor(bPlatform.value, bService.value, Number(bQty.value));
-    var qty = Number(bQty.value).toLocaleString("en-US");
-    var priceText = itemPrice ? fmtPKR(itemPrice.total) : "—";
-    var line = bPlatform.value + " — " + bService.value + " — " + qty + " — " + bLink.value.trim() + " — " + priceText;
-    bList.value += (bList.value.trim() ? "\n" : "") + line;
+    var item = {
+      id: 'b' + Date.now() + Math.round(Math.random() * 1000),
+      platform: bPlatform.value,
+      service:  bService.value,
+      qty:      Number(bQty.value),
+      link:     bLink.value.trim(),
+      price:    0
+    };
+    recomputeItemPrice(item);
+    bulkItems.push(item);
+    syncBulkTextarea();
+    renderBulkItems();
     countItems();
-    updateBulkSummary();
     // keep platform/service for convenience, clear qty + link
     bQty.value = ""; bLink.value = "";
     bQty.focus();
@@ -1008,6 +1352,18 @@
     });
     singleFields.style.display = bulk ? "none" : "contents";
     bulkFields.style.display = bulk ? "flex" : "none";
+    // If an applied promo doesn't fit the new mode, drop it
+    if (appliedPromo && appliedPromo.appliesTo && appliedPromo.appliesTo !== 'both' && appliedPromo.appliesTo !== mode) {
+      appliedPromo = null;
+      var pi = document.getElementById('f_promo');
+      var fb = document.getElementById('promoFeedback');
+      var ab = document.getElementById('applyPromoBtn');
+      var cb = document.getElementById('clearPromoBtn');
+      if (pi) { pi.value = ''; pi.disabled = false; }
+      if (ab) ab.style.display = '';
+      if (cb) cb.style.display = 'none';
+      if (fb) { fb.textContent = 'Previous promo code was only valid for the other order type.'; fb.className = 'promo-feedback muted'; }
+    }
     if (bulk) {
       priceBox.classList.remove("show");
       updateBulkSummary();
@@ -1015,6 +1371,7 @@
       if (bulkPriceSummary) bulkPriceSummary.classList.remove("show");
       updatePrice();
     }
+    updatePromoRowVisibility();
   }
   modeToggle.addEventListener("click", function (e) {
     var opt = e.target.closest(".seg-opt");
@@ -1243,7 +1600,8 @@
       if (!code) { setFeedback("Please enter a code.", "muted"); return; }
       applyBtn.disabled = true;
       setFeedback("Checking…", "muted");
-      fetch("/api/promos/validate/" + encodeURIComponent(code), { cache: "no-store" })
+      var url = "/api/promos/validate/" + encodeURIComponent(code) + "?mode=" + encodeURIComponent(orderMode);
+      fetch(url, { cache: "no-store" })
         .then(function(r) { return r.json().then(function(j) { return { ok: r.ok, body: j }; }); })
         .then(function(res) {
           applyBtn.disabled = false;
@@ -1253,7 +1611,7 @@
             updatePrice(); updateBulkSummary();
             return;
           }
-          appliedPromo = { code: res.body.code, type: res.body.type, value: res.body.value };
+          appliedPromo = { code: res.body.code, type: res.body.type, value: res.body.value, appliesTo: res.body.appliesTo };
           var label = appliedPromo.type === 'percent' ? appliedPromo.value + '% off' : '₨' + appliedPromo.value.toLocaleString() + ' off';
           setFeedback("✓ " + appliedPromo.code + " applied — " + label, "ok");
           promoInput.value = appliedPromo.code;
@@ -1461,4 +1819,395 @@
       if (y < 900) glow.style.transform = "translateX(-50%) translateY(" + y * 0.18 + "px)";
     }, { passive: true });
   }
+
+  /* ============================================================
+     AI CHATBOT — multilingual, rule-based, fully client-side
+     No external API, no server load. Detects English / Urdu /
+     Roman Urdu from the user's message and replies in the same.
+     ============================================================ */
+  (function() {
+    var floatBtn = document.getElementById("chatFloat");
+    var panel    = document.getElementById("chatPanel");
+    var closeBtn = document.getElementById("chatClose");
+    var form     = document.getElementById("chatForm");
+    var input    = document.getElementById("chatInput");
+    var body     = document.getElementById("chatBody");
+    var quickRow = document.getElementById("chatQuick");
+    var brandEl  = document.getElementById("chatBrandName");
+    if (!floatBtn || !panel || !form || !input || !body) return;
+
+    /* ── Language detection ── */
+    function detectLang(text) {
+      // Real Urdu script (Arabic Unicode block)
+      if (/[؀-ۿݐ-ݿ]/.test(text)) return "ur";
+      // Roman Urdu markers — common Urdu words written in English letters
+      var roman = /\b(kya|kese|kaise|kaisay|kitna|kitne|kitni|kahan|kahaan|kab|kyun|kyo|kyu|kab|hai|hain|ho|ka|ki|ke|ko|me|mein|mujhe|mujh|tum|tumhara|aap|apka|apke|apki|apko|hum|hamara|krna|karna|krna|krte|krty|krrhe|raha|rha|chahiye|chahye|chahta|chahti|order|deta|deti|dena|leta|leti|lena|sakta|sakti|sakte|sakhta|krwana|karwana|hota|hoti|hote|nhi|nahi|bilkul|theek|thik|thk|acha|achha|achi|achi|bohut|bohat|bahut|zaror|zaroor|jaldi|wajah|kuch|kuchh|koi|kisi|wala|wali|kar|kr|haan|han|ji|na|mat|samajh|samjh|samjha|samjhi|samjhe|service|payment|kese|paisay|paise|paisa|rupay|sasta|mahnga|mehnga|garentee|guarantee|wala|kerwana|kerwa|hojai|hogya|hogai|krdo|kardo|krdein|kardein|please|order|whatsapp|wapis|wapas)\b/i;
+      if (roman.test(text)) return "roman";
+      return "en";
+    }
+
+    /* ── Helper ── */
+    function any(text, words) {
+      var t = text.toLowerCase();
+      for (var i = 0; i < words.length; i++) if (t.indexOf(words[i]) !== -1) return true;
+      return false;
+    }
+    function brand() { return appConfig.brandName || "GrowVia"; }
+    function tag(text) { return text.replace(/\{brand\}/g, brand()); }
+
+    /* ── Intent definitions — order matters (top = highest priority) ── */
+    var INTENTS = [
+      {
+        id: "greeting",
+        match: function(t, lang) {
+          if (lang === "ur") return /(سلام|ہیلو|آداب)/.test(t);
+          if (lang === "roman") return any(t, ["salam", "assalam", "asalamoalikum", "asalamoalaikum", "asalam", "hi", "hello", "hey", "adaab"]);
+          return /^(hi|hello|hey|good\s+(morning|evening|afternoon)|greetings)\b/i.test(t.trim());
+        },
+        reply: {
+          en:    "Hi there! Welcome to {brand}. How can I help you today — pricing, services, delivery, or something else?",
+          roman: "Salam! {brand} me khush amdeed. Main aapki kya madad kar sakta hoon — rates, services, delivery ke baray me ya kuch aur?",
+          ur:    "السلام علیکم! {brand} میں خوش آمدید۔ میں آپ کی کس طرح مدد کر سکتا ہوں — قیمت، خدمات، یا کچھ اور؟"
+        }
+      },
+      {
+        id: "how_to_order",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["kese order", "kaise order", "order kese", "order kaise", "kese krna", "kese kre", "kaise karna", "order krwana", "order krna", "order krwa", "order place"]);
+          if (lang === "ur") return /(آرڈر|کیسے|طریقہ)/.test(t);
+          return /\b(how\s+(to|do\s+i)\s+(order|place)|order\s+process|place\s+an?\s+order|where\s+(do\s+i|to)\s+order)\b/i.test(t);
+        },
+        reply: {
+          en:    "Placing an order is simple — just 4 steps:\n1. Pick a platform (Instagram, TikTok, etc.) and the service you need\n2. Enter the exact quantity and your public profile/post link\n3. Add your full name and WhatsApp number\n4. Tap Place Order — our team will confirm on WhatsApp instantly.\n\nNo signup, no wallet, no waiting.",
+          roman: "Order karna bohat simple hai — 4 steps:\n1. Platform select karein (Instagram, TikTok, waghaira) aur service chunein\n2. Quantity aur apna public profile/post link daalein\n3. Naam aur WhatsApp number likhein\n4. Place Order dabayein — humari team WhatsApp pe foran confirm karegi.\n\nKoi signup nahi, koi wallet nahi.",
+          ur:    "آرڈر دینا بہت آسان ہے — صرف 4 قدم:\n1. پلیٹ فارم اور سروس منتخب کریں\n2. مقدار اور اپنا پبلک لنک درج کریں\n3. نام اور واٹس ایپ نمبر لکھیں\n4. آرڈر کا بٹن دبائیں — ہماری ٹیم فوراً واٹس ایپ پر تصدیق کرے گی۔"
+        }
+      },
+      {
+        id: "pricing",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["price", "rate", "kitna", "kitne", "kitni", "paisay", "paise", "paisa", "rupay", "kharcha", "cost", "kimat", "qeemat"]);
+          if (lang === "ur") return /(قیمت|ریٹ|پیسے|روپے)/.test(t);
+          return /\b(price|pricing|rate|rates|cost|how\s+much|charges?|fee|fees|expensive|cheap)\b/i.test(t);
+        },
+        reply: {
+          en:    "Live pricing is shown right on the order form — just pick a platform, service, and quantity and the total updates instantly in PKR. We accept JazzCash, EasyPaisa, SadaPay, NayaPay and bank transfer. For a full price list, tap the View Prices button in the navbar.",
+          roman: "Rates order form pe live show hote hain — platform, service aur quantity chunein, total foran PKR me update ho jata hai. Hum JazzCash, EasyPaisa, SadaPay, NayaPay aur bank transfer accept karte hain. Pora price list dekhne ke liye navbar me View Prices dabayein.",
+          ur:    "تمام قیمتیں آرڈر فارم پر براہ راست نظر آتی ہیں — پلیٹ فارم اور سروس منتخب کرتے ہی ٹوٹل پاکستانی روپیہ میں اپڈیٹ ہو جاتا ہے۔ ہم JazzCash، EasyPaisa، SadaPay، NayaPay اور بینک ٹرانسفر قبول کرتے ہیں۔"
+        }
+      },
+      {
+        id: "services_platforms",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["kon si service", "kon si platform", "kaunsi service", "kaunsa platform", "kya kya", "platforms", "konsi service"]);
+          if (lang === "ur") return /(کونسی سروس|پلیٹ فارم|کیا کیا)/.test(t);
+          return /\b(what\s+(services|platforms)|which\s+(platforms|services|networks)|do\s+you\s+(support|do|offer)|services\s+(do\s+you|offered)|available\s+(platforms|services))\b/i.test(t);
+        },
+        reply: {
+          en:    "We cover all major platforms: Instagram, Facebook, TikTok, YouTube, X (Twitter), and LinkedIn. Services include followers, likes, views, comments, shares, saves, subscribers and watch hours — quality available as Premium (real, lasting) or Basic (fast, automated).",
+          roman: "Hum saari major platforms pe kaam karte hain: Instagram, Facebook, TikTok, YouTube, X (Twitter), aur LinkedIn. Services: followers, likes, views, comments, shares, saves, subscribers, watch hours. Quality 2 options — Premium (real, lasting) ya Basic (fast, automated).",
+          ur:    "ہم تمام بڑے پلیٹ فارمز پر کام کرتے ہیں: انسٹاگرام، فیس بک، ٹک ٹاک، یوٹیوب، X (ٹویٹر)، اور لنکڈ ان۔ سروسز: followers، likes، views، comments، shares، subscribers، watch hours۔"
+        }
+      },
+      {
+        id: "premium_vs_basic",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["premium", "basic", "quality", "farq", "difference", "asli", "real", "fake", "nakli"]);
+          if (lang === "ur") return /(پریمیم|بیسک|فرق|اصلی|نقلی)/.test(t);
+          return /\b(premium|basic|quality\s+(difference|options)|difference\s+between|real\s+(or|vs)\s+(bot|fake)|organic\s+vs)\b/i.test(t);
+        },
+        reply: {
+          en:    "Premium = real, naturally-grown accounts. They look authentic, last long-term, and drop rarely. Slower delivery (24–72 hrs).\nBasic = automated, mixed-quality. Cheaper, very fast delivery (often within hours), but a small percentage may drop over time.\nFor brand profiles or serious creators, Premium is the right choice.",
+          roman: "Premium = real, naturally grown accounts. Asli lagti hain, lambay arsay tak rehti hain, drop rarely hoti hain. Delivery thori slow (24–72 ghantay).\nBasic = automated, mixed-quality. Sasta, bohat fast (kuch ghanton me), lekin thora percentage drop ho sakta hai.\nBrand profiles ya serious creators ke liye Premium behtar hai.",
+          ur:    "پریمیم = اصلی اکاؤنٹس جو قدرتی لگتے ہیں اور لمبے عرصے تک رہتے ہیں۔ ڈیلیوری 24-72 گھنٹے میں۔\nبیسک = آٹومیٹڈ، تیز ڈیلیوری لیکن کچھ فیصد گر سکتا ہے۔\nبرانڈ کے لیے پریمیم بہتر ہے۔"
+        }
+      },
+      {
+        id: "delivery_time",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["kab milega", "kab milegi", "kitne din", "kitne ghantay", "kitne ghante", "delivery", "time", "kab tak", "kab ayega"]);
+          if (lang === "ur") return /(کب|وقت|دن|گھنٹے|ڈیلیوری)/.test(t);
+          return /\b(delivery\s+time|how\s+long|when\s+(will|do)\s+i\s+get|how\s+fast|estimated\s+(time|delivery)|when\s+ready)\b/i.test(t);
+        },
+        reply: {
+          en:    "Basic orders typically start within 0–2 hours and complete within a few hours.\nPremium orders start within 0–6 hours and complete gradually over 24–72 hours so growth looks natural.\nLarge bulk orders may take slightly longer. Once you place an order, you can check live status anytime on the Track Order page using your Order ID.",
+          roman: "Basic orders 0–2 ghante me start ho ke kuch hi ghanton me complete ho jate hain.\nPremium orders 0–6 ghantay me start hote hain aur 24–72 ghanton me natural taur pe complete hote hain.\nBari bulk orders thori der laga sakti hain. Order place karne ke baad apna Order ID daal ke Track Order page pe live status check kar sakte ho.",
+          ur:    "بیسک آرڈرز 0-2 گھنٹے میں شروع اور چند گھنٹوں میں مکمل ہو جاتے ہیں۔\nپریمیم آرڈرز 0-6 گھنٹے میں شروع اور 24-72 گھنٹے میں مکمل ہوتے ہیں۔ آرڈر کے بعد آپ Track Order صفحے پر اپنا اسٹیٹس دیکھ سکتے ہیں۔"
+        }
+      },
+      {
+        id: "payment",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["payment", "pay", "kese pay", "kaise pay", "jazzcash", "easypaisa", "sadapay", "nayapay", "bank"]);
+          if (lang === "ur") return /(ادائیگی|پیمنٹ|جاز کیش|ایزی پیسہ|بینک)/.test(t);
+          return /\b(payment|pay|how\s+(to|do\s+i)\s+pay|payment\s+method|bank\s+transfer|jazzcash|easypaisa|sadapay|nayapay)\b/i.test(t);
+        },
+        reply: {
+          en:    "We accept JazzCash, EasyPaisa, SadaPay, NayaPay, and bank transfer. After you place the order, our team confirms the order on WhatsApp and shares the payment account details. You only pay once you're satisfied that the order is real and confirmed.",
+          roman: "JazzCash, EasyPaisa, SadaPay, NayaPay, aur bank transfer — sab accept hain. Order place karne ke baad humari team WhatsApp pe confirm karti hai aur payment account details share karti hai. Payment tab karte hain jab aap confirm ho jate hain ke order real hai.",
+          ur:    "ہم JazzCash، EasyPaisa، SadaPay، NayaPay، اور بینک ٹرانسفر قبول کرتے ہیں۔ آرڈر کے بعد ہماری ٹیم واٹس ایپ پر تصدیق کرتی ہے۔"
+        }
+      },
+      {
+        id: "track_order",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["track", "order status", "order kahan", "order kaha", "status", "kahan hai"]);
+          if (lang === "ur") return /(ٹریک|اسٹیٹس|آرڈر کہاں)/.test(t);
+          return /\b(track|order\s+status|where\s+is\s+my\s+order|status\s+of\s+(my\s+)?order|is\s+my\s+order)\b/i.test(t);
+        },
+        reply: {
+          en:    "You can track your order anytime — no signup needed. Tap the Track Order button in the top navbar, enter your Order ID (looks like GRV-XXXXXX-XXXX), and you'll see the live status with a 4-step timeline.",
+          roman: "Order track karne ke liye signup ki zaroorat nahi. Top navbar me Track Order button dabayein, apna Order ID (jaise GRV-XXXXXX-XXXX) daalein, aur live status 4-step timeline ke saath dikh jayega.",
+          ur:    "آرڈر ٹریک کرنا آسان ہے — نیویگیشن میں Track Order کا بٹن دبائیں اور اپنا Order ID درج کریں۔"
+        }
+      },
+      {
+        id: "promo",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["promo", "discount", "code", "coupon", "offer", "discount mil"]);
+          if (lang === "ur") return /(پرومو|ڈسکاؤنٹ|آفر|کوڈ)/.test(t);
+          return /\b(promo|discount|coupon|code|offer\s+code|any\s+(discount|offer))\b/i.test(t);
+        },
+        reply: {
+          en:    "Yes — if a promo code is active, you'll see it on the floating offer banner. Just copy the code, then apply it on the order form after picking your service and quantity. The discount applies instantly to the total.",
+          roman: "Haan — agar koi promo active ho to floating offer banner pe nazar ayega. Code copy karein, phir order form pe service aur quantity select karne ke baad apply karein. Discount foran total me lag jata hai.",
+          ur:    "اگر کوئی پرومو کوڈ فعال ہو تو وہ آفر بینر پر دکھایا جائے گا۔ کوڈ کاپی کر کے آرڈر فارم پر لگائیں۔"
+        }
+      },
+      {
+        id: "bulk",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["bulk", "bohut sare", "bohat sare", "multiple", "ek se zyada", "kayi"]);
+          if (lang === "ur") return /(بلک|ایک سے زیادہ|کئی)/.test(t);
+          return /\b(bulk|multiple\s+orders|many\s+(orders|items)|several|wholesale)\b/i.test(t);
+        },
+        reply: {
+          en:    "Bulk orders are fully supported — switch to Bulk mode on the order form. Add as many items as you need (each with its own platform, service, quantity, and link). You can edit quantities or remove items anytime before submitting. The total is calculated live.",
+          roman: "Bulk orders bilkul support karte hain — order form me Bulk mode pe switch karein. Jitne items chahiye add karein (har ek apna platform, service, quantity aur link). Submit karne se pehle quantity edit ya items remove kar sakte ho. Total live calculate hota hai.",
+          ur:    "بلک آرڈر مکمل طور پر دستیاب ہیں — فارم پر Bulk موڈ منتخب کریں۔ جتنی چاہیں آئٹمز شامل کر سکتے ہیں اور بھیجنے سے پہلے ترمیم کر سکتے ہیں۔"
+        }
+      },
+      {
+        id: "refund",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["refund", "wapas", "paisay wapas", "wapsi", "cancel"]);
+          if (lang === "ur") return /(ریفنڈ|واپس|منسوخ)/.test(t);
+          return /\b(refund|money\s+back|cancel|cancellation|chargeback)\b/i.test(t);
+        },
+        reply: {
+          en:    "If a service can't be delivered or is partially delivered, please contact our team on WhatsApp with your Order ID. We resolve every legitimate issue — usually with a refill or a partial refund. Orders that have already been delivered cannot be reversed.",
+          roman: "Agar service deliver nahi ho sakti ya kuch hi mile to apna Order ID le ke WhatsApp pe humari team se baat karein. Legitimate issue ka hum hal nikalte hain — refill ya partial refund ke zariye. Already delivered orders reverse nahi ho sakte.",
+          ur:    "اگر کوئی سروس مکمل نہ مل سکے تو واٹس ایپ پر اپنا Order ID بھیجیں۔ ہم ہر جائز مسئلہ حل کرتے ہیں۔"
+        }
+      },
+      {
+        id: "safety_ethics",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["safe", "secure", "ban", "account ban", "danger", "risk", "khatra", "ethical"]);
+          if (lang === "ur") return /(محفوظ|پابندی|خطرہ)/.test(t);
+          return /\b(safe|secure|ban|banned|account\s+(safety|secure|safe)|risk|risky|ethical|illegal)\b/i.test(t);
+        },
+        reply: {
+          en:    "Yes, we never ask for your password and we never post on your behalf. All growth is delivered safely from the outside — no platform terms violated. We follow strict ethical guidelines: no inappropriate content, no fraud, no fake engagement schemes.",
+          roman: "Bilkul safe hai — hum password kabhi nahi mangte aur aapke account se post nahi karte. Saari growth bahar se safely deliver hoti hai. Hum strict ethics follow karte hain: no inappropriate content, no fraud.",
+          ur:    "بالکل محفوظ ہے — ہم آپ کا پاس ورڈ کبھی نہیں مانگتے اور آپ کے اکاؤنٹ سے کچھ پوسٹ نہیں کرتے۔"
+        }
+      },
+      {
+        id: "marketing",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["marketing", "campaign", "strategy", "long term", "lambay arsay"]);
+          if (lang === "ur") return /(مارکیٹنگ|مہم|حکمت عملی)/.test(t);
+          return /\b(marketing|campaign|strategy|long[-\s]?term|growth\s+strategy|brand\s+plan)\b/i.test(t);
+        },
+        reply: {
+          en:    "For long-term marketing campaigns, content strategy, or full brand growth plans, please contact us directly on WhatsApp. We'll discuss your goals, audience and budget, then share a custom plan — separate from casual one-off orders.",
+          roman: "Long-term marketing campaign, content strategy ya pora brand growth plan ke liye seedha WhatsApp pe rabta karein. Hum aapke goals, audience aur budget par bait karke custom plan share karenge — casual one-off orders se alag.",
+          ur:    "طویل مدتی مارکیٹنگ یا برانڈ پلان کے لیے براہ راست واٹس ایپ پر رابطہ کریں۔ ہم آپ کے اہداف اور بجٹ کے مطابق کسٹم پلان دیں گے۔"
+        }
+      },
+      {
+        id: "contact",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["contact", "rabta", "raabta", "baat", "talk", "whatsapp", "phone", "number"]);
+          if (lang === "ur") return /(رابطہ|بات|واٹس ایپ|نمبر)/.test(t);
+          return /\b(contact|reach\s+(you|out)|talk\s+to\s+(human|agent|someone)|customer\s+(service|support)|phone\s+number|whatsapp)\b/i.test(t);
+        },
+        reply: {
+          en:    "You can reach our team anytime on WhatsApp using the green button at the bottom-right of the page. We typically reply within a few minutes during business hours.",
+          roman: "Humari team se WhatsApp pe rabta karein — page ke neeche-right me green button hai. Business hours me chand minute me reply karte hain.",
+          ur:    "ہم سے واٹس ایپ پر رابطہ کریں — صفحے کے نیچے دائیں طرف سبز بٹن سے۔"
+        }
+      },
+      {
+        id: "thanks",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["shukriya", "shukria", "thanks", "thank", "thx", "thnx"]);
+          if (lang === "ur") return /(شکریہ|مہربانی)/.test(t);
+          return /\b(thanks|thank\s+you|ty|thx|thnx|appreciated|cheers)\b/i.test(t);
+        },
+        reply: {
+          en:    "You're welcome! If you need anything else, I'm right here. For human help, WhatsApp our team anytime.",
+          roman: "Khush amdeed! Aur kuch chahiye to main yahan hoon. Human team ke liye WhatsApp pe rabta karein.",
+          ur:    "خوش آمدید! اگر کچھ اور درکار ہو تو میں یہاں موجود ہوں۔"
+        }
+      },
+      {
+        id: "bye",
+        match: function(t, lang) {
+          if (lang === "roman") return any(t, ["bye", "khuda hafiz", "allah hafiz", "alvida", "goodbye"]);
+          if (lang === "ur") return /(الوداع|خدا حافظ|اللہ حافظ)/.test(t);
+          return /\b(bye|goodbye|see\s+you|cya|farewell|take\s+care)\b/i.test(t);
+        },
+        reply: {
+          en:    "Take care! Come back anytime — and remember, WhatsApp is always open for real human help.",
+          roman: "Allah Hafiz! Jab bhi madad chahiye, hazir hain. WhatsApp pe humari team hamesha available hai.",
+          ur:    "اللہ حافظ! جب بھی مدد چاہیے، حاضر ہیں۔"
+        }
+      }
+    ];
+
+    /* ── Fallback for unknown questions ── */
+    var FALLBACK = {
+      en:    "I am not sure about that one. For anything specific, our team on WhatsApp can answer instantly — just tap the green WhatsApp button at the bottom right.",
+      roman: "Iska theek jawab mere paas nahi hai. Specific kisi cheez ke liye humari team WhatsApp pe foran reply karti hai — neechay right me green WhatsApp button dabayein.",
+      ur:    "اس کا میرے پاس صحیح جواب نہیں ہے۔ تفصیلی سوال کے لیے براہ راست واٹس ایپ پر رابطہ کریں۔"
+    };
+
+    /* ── Custom admin Q&A check ── */
+    function matchCustomQA(text) {
+      var list = (appConfig.chatbot && appConfig.chatbot.customQA) || [];
+      var t = text.toLowerCase();
+      for (var i = 0; i < list.length; i++) {
+        var kws = String(list[i].keywords || "").toLowerCase().split(",").map(function(s){ return s.trim(); }).filter(Boolean);
+        for (var j = 0; j < kws.length; j++) {
+          if (t.indexOf(kws[j]) !== -1) return list[i].answer;
+        }
+      }
+      return null;
+    }
+
+    /* ── Generate reply ── */
+    function generateReply(text) {
+      var lang = detectLang(text);
+      // Admin-defined custom Q&A wins
+      var custom = matchCustomQA(text);
+      if (custom) return tag(custom);
+      // Built-in intents
+      for (var i = 0; i < INTENTS.length; i++) {
+        if (INTENTS[i].match(text, lang)) {
+          return tag(INTENTS[i].reply[lang] || INTENTS[i].reply.en);
+        }
+      }
+      return FALLBACK[lang] || FALLBACK.en;
+    }
+
+    /* ── UI helpers ── */
+    function addMessage(text, who) {
+      var el = document.createElement("div");
+      el.className = "chat-msg " + (who || "bot");
+      // Linkify URLs & line breaks
+      var safe = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      safe = safe.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+      safe = safe.replace(/\n/g, "<br>");
+      el.innerHTML = safe;
+      body.appendChild(el);
+      body.scrollTop = body.scrollHeight;
+    }
+    function showTyping() {
+      var el = document.createElement("div");
+      el.className = "chat-msg bot typing";
+      el.id = "chatTyping";
+      el.innerHTML = '<span class="chat-typing-dot"></span><span class="chat-typing-dot"></span><span class="chat-typing-dot"></span>';
+      body.appendChild(el);
+      body.scrollTop = body.scrollHeight;
+    }
+    function hideTyping() {
+      var t = document.getElementById("chatTyping");
+      if (t) t.remove();
+    }
+    function setQuickReplies(items) {
+      quickRow.innerHTML = "";
+      items.forEach(function(label) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "chat-quick-btn";
+        b.textContent = label;
+        b.addEventListener("click", function() {
+          input.value = label;
+          form.dispatchEvent(new Event("submit", { cancelable: true }));
+        });
+        quickRow.appendChild(b);
+      });
+    }
+
+    var bootstrapped = false;
+    function bootstrap() {
+      if (bootstrapped) return;
+      bootstrapped = true;
+      var welcome = (appConfig.chatbot && appConfig.chatbot.welcomeMessage) ||
+        "Hi! I am the " + brand() + " assistant. Ask me anything in English, Urdu or Roman Urdu — about pricing, services, delivery, payment, anything.";
+      addMessage(tag(welcome), "bot");
+      setQuickReplies([
+        "How do I order?",
+        "Rates kya hain?",
+        "Delivery time?",
+        "Premium vs Basic?",
+        "Payment methods"
+      ]);
+    }
+
+    /* ── Open / close ── */
+    function open() {
+      if (!appConfig.chatbot || appConfig.chatbot.enabled === false) return;
+      panel.classList.add("open");
+      panel.setAttribute("aria-hidden", "false");
+      floatBtn.classList.add("open");
+      bootstrap();
+      setTimeout(function(){ input.focus(); }, 280);
+    }
+    function close() {
+      panel.classList.remove("open");
+      panel.setAttribute("aria-hidden", "true");
+      floatBtn.classList.remove("open");
+    }
+    floatBtn.addEventListener("click", function() {
+      if (panel.classList.contains("open")) close(); else open();
+    });
+    if (closeBtn) closeBtn.addEventListener("click", close);
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape" && panel.classList.contains("open")) close();
+    });
+
+    /* ── Submit handler ── */
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      var text = input.value.trim();
+      if (!text) return;
+      addMessage(text, "user");
+      input.value = "";
+      quickRow.innerHTML = "";
+      showTyping();
+      setTimeout(function() {
+        hideTyping();
+        var reply = generateReply(text);
+        addMessage(reply, "bot");
+      }, 450 + Math.random() * 350);
+    });
+
+    /* ── React to config changes (enable/disable / hide button) ── */
+    function applyChatbotConfig() {
+      var cfg = appConfig.chatbot || {};
+      if (cfg.enabled === false) {
+        floatBtn.style.display = "none";
+        close();
+      } else {
+        floatBtn.style.display = "";
+      }
+      if (brandEl) brandEl.textContent = brand() + " Assistant";
+    }
+    // Poll config on init + every 8s (config polling already happens elsewhere)
+    setInterval(applyChatbotConfig, 4000);
+    setTimeout(applyChatbotConfig, 300);
+  })();
 })();

@@ -3,13 +3,53 @@
     "allowSingleOrder": true,
     "allowBulkOrder": true,
     "offerActive": true,
-    "offerText": "go get it",
+    "offerText": "Lunch Offer",
     "brandName": "GrowVia",
     "brandTagline": "Your Growth. Our Mission.",
     "logoImageUrl": "",
     "offerStart": "2026-05-31T01:37",
     "offerEnd": "2026-06-01T01:37",
     "themeColor": "blue",
+    "allowPromoCode": true,
+    "offerPromoCode": "NO1GROWVIA",
+    "heroStats": [
+      {
+        "number": "12M+",
+        "label": "Engagements delivered",
+        "visible": false
+      },
+      {
+        "number": "40k+",
+        "label": "Orders completed",
+        "visible": false
+      },
+      {
+        "number": "4.9/5",
+        "label": "Average rating",
+        "visible": true
+      }
+    ],
+    "help": {
+      "enabled": true,
+      "title": "Order Guide & Support",
+      "intro": "A short guide to help you place a clean, accurate order — and how to reach us if anything goes wrong.",
+      "fillTitle": "How to place a correct order",
+      "fillBody": "Choose your platform and the service you need, enter a real, working profile or post link, and the exact quantity you want. Make sure the link is public so our team can fulfil the order. Double-check your WhatsApp number — that is how we confirm the order and send updates.",
+      "problemTitle": "Facing an issue?",
+      "problemBody": "If you face any problem placing an order, with payment, or with delivery, contact us directly on WhatsApp. Our team will respond in real time and resolve the matter the same day.",
+      "marketingTitle": "Looking for proper marketing?",
+      "marketingBody": "If you want a long-term, structured marketing campaign for your brand or business, do not place a casual order — reach out to us directly on WhatsApp. We will share a custom plan tailored to your goals, audience and budget."
+    },
+    "chatbot": {
+      "enabled": true,
+      "welcomeMessage": "Hi! I am the GrowVia assistant. Ask me anything in English, Urdu or Roman Urdu — about pricing, services, delivery, payment, anything.",
+      "customQA": [
+        {
+          "keywords": "how to order",
+          "answer": "Choose your platform and the service you need, enter a real, working profile or post link, and the exact quantity you want. Make sure the link is public so our team can fulfil the order. Double-check your WhatsApp number — that is how we confirm the order and send updates."
+        }
+      ]
+    },
     "whatsappNumber": "923287621015"
   },
   "faqs": [],
@@ -73,6 +113,27 @@
     }
   ],
   "orders": [
+    {
+      "id": "GRV-310526-5646",
+      "createdAt": "2026-05-31T16:00:17.496Z",
+      "name": "Farhan Ali",
+      "whatsapp": "+923143632195",
+      "mode": "bulk",
+      "quality": "organic",
+      "platform": "",
+      "service": "",
+      "qty": "",
+      "link": "",
+      "notes": "",
+      "bulkItems": [],
+      "bulkText": "Instagram — Followers — 1,000 — https://www.pinterest.com/ — ₨1,120\nInstagram — Likes — 10,000 — https://www.pinterest.com/ — ₨4,200\nFacebook — Likes — 1,000 — https://www.pinterest.com/ — ₨462",
+      "subtotal": "₨5,782",
+      "promoCode": "",
+      "promoLabel": "",
+      "promoDiscount": "",
+      "totalPrice": "₨5,782",
+      "status": "pending"
+    },
     {
       "id": "GRV-310526-8040",
       "createdAt": "2026-05-31T11:08:38.210Z",
@@ -324,6 +385,48 @@
   },
   "activityLog": [
     {
+      "id": "a1780253169932952",
+      "username": "admin",
+      "role": "Administrator",
+      "action": "login",
+      "at": "2026-05-31T18:46:09.932Z"
+    },
+    {
+      "id": "a1780251864619242",
+      "username": "admin",
+      "role": "Administrator",
+      "action": "login",
+      "at": "2026-05-31T18:24:24.619Z"
+    },
+    {
+      "id": "a1780251218938236",
+      "username": "admin",
+      "role": "Administrator",
+      "action": "login",
+      "at": "2026-05-31T18:13:38.938Z"
+    },
+    {
+      "id": "a1780250710645295",
+      "username": "admin",
+      "role": "Administrator",
+      "action": "login",
+      "at": "2026-05-31T18:05:10.645Z"
+    },
+    {
+      "id": "a1780242934507620",
+      "username": "admin",
+      "role": "Administrator",
+      "action": "login",
+      "at": "2026-05-31T15:55:34.507Z"
+    },
+    {
+      "id": "a1780241526878502",
+      "username": "admin",
+      "role": "Administrator",
+      "action": "login",
+      "at": "2026-05-31T15:32:06.878Z"
+    },
+    {
       "id": "a1780230027972345",
       "username": "admin",
       "role": "Administrator",
@@ -338,5 +441,17 @@
       "at": "2026-05-31T11:26:14.646Z"
     }
   ],
-  "promos": []
+  "promos": [
+    {
+      "id": "p1780241558577462",
+      "code": "NO1GROWVIA",
+      "type": "percent",
+      "value": 20,
+      "expiry": "2026-06-08",
+      "maxUses": 100,
+      "uses": 0,
+      "disabled": false,
+      "createdAt": "2026-05-31T15:32:38.578Z"
+    }
+  ]
 }

@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="styles.css?v=10" />
 <link id="favicon" rel="icon" type="image/png" href="Icon.png?v=3">
 </head>
 <body class="is-loading">
@@ -55,7 +55,10 @@
       <span class="logo__mark" id="logoMark">G</span>
       <span class="logo__text" id="logoText">Grow<b>Via</b></span>
     </a>
-    <div class="nav__actions">
+    <button type="button" class="nav-hamburger" id="navHamburger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav__actions" id="navActions">
       <div class="ccy-toggle nav-ccy" id="navCcy" aria-label="Currency">
         <button type="button" class="ccy-opt active" data-ccy="PKR">PKR</button>
       </div>
@@ -100,18 +103,18 @@
     <div class="hero__copy">
       <h1 class="reveal" data-d="1">Premium growth for serious <em>creators &amp; brands.</em></h1>
       <p class="hero__sub reveal" data-d="2"><span data-brand-name>GrowVia</span> delivers ethical, safe and professional social media growth across every major platform. Real momentum, transparent process, zero compromise on your values.</p>
-      <div class="hero__stats reveal" data-d="2">
-        <div class="stat">
-          <div class="stat__num">12<span>M+</span></div>
-          <div class="stat__label">Engagements delivered</div>
+      <div class="hero__stats reveal" data-d="2" id="heroStats">
+        <div class="stat" data-stat-idx="0">
+          <div class="stat__num" data-stat-num>12<span>M+</span></div>
+          <div class="stat__label" data-stat-label>Engagements delivered</div>
         </div>
-        <div class="stat">
-          <div class="stat__num">40<span>k+</span></div>
-          <div class="stat__label">Orders completed</div>
+        <div class="stat" data-stat-idx="1">
+          <div class="stat__num" data-stat-num>40<span>k+</span></div>
+          <div class="stat__label" data-stat-label>Orders completed</div>
         </div>
-        <div class="stat">
-          <div class="stat__num">4.9<span>/5</span></div>
-          <div class="stat__label">Average rating</div>
+        <div class="stat" data-stat-idx="2">
+          <div class="stat__num" data-stat-num>4.9<span>/5</span></div>
+          <div class="stat__label" data-stat-label>Average rating</div>
         </div>
       </div>
       <div class="hero__trust reveal" data-d="3">
@@ -255,8 +258,15 @@
               Add item to list
             </button>
           </div>
-          <textarea class="control bulk-list" id="b_list" placeholder="Your added items appear here — or type / paste them manually, one per line…
-e.g.  Instagram — Followers — 1000 — https://instagram.com/yourpage"></textarea>
+          <div class="bulk-items" id="bulkItemsList" aria-live="polite"></div>
+          <div class="bulk-empty" id="bulkEmptyState">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            <div>
+              <strong>No items added yet</strong>
+              <span>Build your order above — pick a platform, service, quantity and link, then tap <em>Add item to list</em>.</span>
+            </div>
+          </div>
+          <textarea class="control bulk-list" id="b_list" style="display:none;" aria-hidden="true"></textarea>
           <div class="bulk-meta">
             <span id="bulkCount">0 items in your order</span>
             <span class="bulk-meta__note">Final quote confirmed on WhatsApp</span>
@@ -295,16 +305,17 @@ e.g.  Instagram — Followers — 1000 — https://instagram.com/yourpage"></tex
               <span class="price-box__alt" id="priceAlt"></span>
             </div>
           </div>
-          <div class="promo-row" id="promoRow">
-            <div class="promo-input-wrap">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-              <input type="text" id="f_promo" placeholder="Have a promo code?" autocomplete="off" spellcheck="false" />
-              <button type="button" id="applyPromoBtn">Apply</button>
-              <button type="button" id="clearPromoBtn" style="display:none;" title="Remove code">×</button>
-            </div>
-            <div class="promo-feedback" id="promoFeedback"></div>
-          </div>
           <div class="price-box__hint" id="priceHint">Select platform &amp; service to see pricing</div>
+        </div>
+
+        <div class="promo-row standalone" id="promoRow" style="display:none;">
+          <div class="promo-input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            <input type="text" id="f_promo" placeholder="Have a promo code?" autocomplete="off" spellcheck="false" />
+            <button type="button" id="applyPromoBtn">Apply</button>
+            <button type="button" id="clearPromoBtn" style="display:none;" title="Remove code">×</button>
+          </div>
+          <div class="promo-feedback" id="promoFeedback"></div>
         </div>
         <button type="submit" class="submit-btn" id="orderSubmitBtn">
           <span class="shine"></span>
@@ -384,7 +395,7 @@ e.g.  Instagram — Followers — 1000 — https://instagram.com/yourpage"></tex
       </div>
     </div>
     <div class="footer__bottom">
-      <span>© 2025 GrowVia. All Rights Reserved.</span>
+      <span>© 2026 GrowVia. All Rights Reserved.</span>
       <span>Built with care · Ethical social growth</span>
     </div>
   </div>
@@ -469,7 +480,7 @@ e.g.  Instagram — Followers — 1000 — https://instagram.com/yourpage"></tex
   <footer class="footer" style="border-bottom:none">
     <div class="wrap">
       <div class="footer__bottom" style="border-top:none;padding-top:0;justify-content:center;text-align:center;">
-        <span>© 2025 GrowVia. All Rights Reserved. · Your Growth. Our Mission.</span>
+        <span>© 2026 GrowVia. All Rights Reserved. · Your Growth. Our Mission.</span>
       </div>
     </div>
   </footer>
@@ -498,6 +509,100 @@ e.g.  Instagram — Followers — 1000 — https://instagram.com/yourpage"></tex
   </div>
 </div>
 
+<!-- ============ AI CHATBOT ============ -->
+<button type="button" class="chat-float" id="chatFloat" aria-label="Open chat assistant">
+  <span class="chat-float__icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  </span>
+  <span class="chat-float__pulse"></span>
+</button>
+
+<div class="chat-panel" id="chatPanel" role="dialog" aria-modal="false" aria-label="GrowVia assistant" aria-hidden="true">
+  <div class="chat-panel__head">
+    <div class="chat-panel__avatar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+    </div>
+    <div class="chat-panel__title">
+      <div class="chat-panel__name" id="chatBrandName">GrowVia Assistant</div>
+      <div class="chat-panel__status"><span class="chat-dot"></span>Online · usually replies instantly</div>
+    </div>
+    <button type="button" class="chat-panel__close" id="chatClose" aria-label="Close chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="chat-panel__body" id="chatBody"></div>
+  <div class="chat-panel__quick" id="chatQuick"></div>
+  <form class="chat-panel__input" id="chatForm">
+    <input type="text" id="chatInput" placeholder="Type your message…" autocomplete="off" maxlength="500" />
+    <button type="submit" aria-label="Send">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+    </button>
+  </form>
+</div>
+
+<!-- ============ FLOATING HELP BUTTON ============ -->
+<button type="button" class="help-float" id="helpFloat" aria-label="Order guide and support">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+  <span>Help</span>
+</button>
+
+<!-- ============ HELP / SUPPORT OVERLAY ============ -->
+<div class="help-overlay" id="helpOverlay" role="dialog" aria-modal="true" aria-label="Order guide and support">
+  <div class="about-topbar">
+    <div class="wrap">
+      <button type="button" class="back-btn" id="helpClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+        Back
+      </button>
+      <div style="font-size:13px;color:var(--text-3);font-weight:600;letter-spacing:0.04em;">SUPPORT</div>
+    </div>
+  </div>
+
+  <section class="help-section">
+    <div class="wrap">
+      <div class="help-eyebrow reveal">Order Guide</div>
+      <h1 class="reveal" id="helpTitle">Order Guide &amp; Support</h1>
+      <p class="help-intro reveal" data-d="1" id="helpIntro">A short guide to help you place a clean, accurate order — and how to reach us if anything goes wrong.</p>
+    </div>
+  </section>
+
+  <section class="help-section help-section--cards">
+    <div class="wrap">
+      <article class="help-card reveal" data-d="1">
+        <div class="help-card__num">01</div>
+        <div class="help-card__body">
+          <h3 id="helpFillTitle">How to place a correct order</h3>
+          <p id="helpFillBody">Choose your platform and the service you need, enter a real, working profile or post link, and the exact quantity you want. Make sure the link is public so our team can fulfil the order. Double-check your WhatsApp number — that is how we confirm the order and send updates.</p>
+        </div>
+      </article>
+
+      <article class="help-card reveal" data-d="2">
+        <div class="help-card__num">02</div>
+        <div class="help-card__body">
+          <h3 id="helpProblemTitle">Facing an issue?</h3>
+          <p id="helpProblemBody">If you face any problem placing an order, with payment, or with delivery, contact us directly on WhatsApp. Our team will respond in real time and resolve the matter the same day.</p>
+          <a href="https://wa.me/3143632195" id="helpProblemWa" class="help-card__cta" target="_blank" rel="noopener">
+            Contact on WhatsApp
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+      </article>
+
+      <article class="help-card reveal" data-d="3">
+        <div class="help-card__num">03</div>
+        <div class="help-card__body">
+          <h3 id="helpMarketingTitle">Looking for proper marketing?</h3>
+          <p id="helpMarketingBody">If you want a long-term, structured marketing campaign for your brand or business, do not place a casual order — reach out to us directly on WhatsApp. We will share a custom plan tailored to your goals, audience and budget.</p>
+          <a href="https://wa.me/3143632195" id="helpMarketingWa" class="help-card__cta" target="_blank" rel="noopener">
+            Discuss your campaign
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>
+
 <!-- ============ FLOATING WHATSAPP BUTTON ============ -->
 <a href="https://wa.me/3143632195" class="wa-float" id="waFloat" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm4.52 14.03c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13s-.64.81-.78.97c-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.13-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31s-.86.85-.86 2.07c0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18z"/></svg>
@@ -515,6 +620,14 @@ e.g.  Instagram — Followers — 1000 — https://instagram.com/yourpage"></tex
   </div>
   <div class="floating-offer__content">
     <div class="floating-offer__text" id="floatingOfferText">Special Offer Active!</div>
+    <div class="floating-offer__promo" id="floatingOfferPromo" style="display:none;">
+      <span class="floating-offer__promo-label">Use this code</span>
+      <button type="button" class="floating-offer__promo-code" id="floatingOfferCode" title="Click to copy">
+        <span id="floatingOfferCodeText"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <div class="floating-offer__promo-meta" id="floatingOfferCodeMeta"></div>
+    </div>
     <div class="floating-offer__timer-wrap" id="floatingTimerWrap" style="display:none;">
       <span class="floating-offer__timer-label">Ends in</span>
       <span class="floating-offer__timer" id="floatingOfferTimer">--:--:--</span>
@@ -523,6 +636,6 @@ e.g.  Instagram — Followers — 1000 — https://instagram.com/yourpage"></tex
   </div>
 </div>
 
-<script src="app.js"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>

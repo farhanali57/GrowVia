@@ -141,6 +141,72 @@ function migratePricing(pricing) {
 /* ── DATA LAYER ── */
 function parseBool(v) { return v === true || v === 'true' || v === 'on' || v === '1'; }
 
+function normalizeHeroStats(raw) {
+  const defaults = [
+    { number: '12M+',  label: 'Engagements delivered', visible: true },
+    { number: '40k+',  label: 'Orders completed',      visible: true },
+    { number: '4.9/5', label: 'Average rating',        visible: true }
+  ];
+  if (!Array.isArray(raw)) return defaults;
+  const out = [];
+  for (let i = 0; i < 3; i++) {
+    const s = raw[i] || {};
+    out.push({
+      number:  String(s.number  || defaults[i].number).trim(),
+      label:   String(s.label   || defaults[i].label).trim(),
+      visible: s.visible === undefined ? defaults[i].visible : parseBool(s.visible)
+    });
+  }
+  return out;
+}
+
+function normalizeChatbot(raw) {
+  const d = {
+    enabled: true,
+    welcomeMessage: 'Hi! I am the GrowVia assistant. Ask me anything in English, Urdu or Roman Urdu — about pricing, services, delivery, payment, anything.',
+    customQA: []
+  };
+  raw = raw || {};
+  let qa = Array.isArray(raw.customQA) ? raw.customQA : [];
+  qa = qa.map(function(x){
+    return {
+      keywords: String((x && x.keywords) || '').trim(),
+      answer:   String((x && x.answer)   || '').trim()
+    };
+  }).filter(function(x){ return x.keywords && x.answer; });
+  return {
+    enabled:        raw.enabled === undefined ? d.enabled : parseBool(raw.enabled),
+    welcomeMessage: String(raw.welcomeMessage || d.welcomeMessage).trim(),
+    customQA:       qa
+  };
+}
+
+function normalizeHelp(raw) {
+  const d = {
+    enabled:        true,
+    title:          'Order Guide & Support',
+    intro:          'A short guide to help you place a clean, accurate order — and how to reach us if anything goes wrong.',
+    fillTitle:      'How to place a correct order',
+    fillBody:       'Choose your platform and the service you need, enter a real, working profile or post link, and the exact quantity you want. Make sure the link is public so our team can fulfil the order. Double-check your WhatsApp number — that is how we confirm the order and send updates.',
+    problemTitle:   'Facing an issue?',
+    problemBody:    'If you face any problem placing an order, with payment, or with delivery, contact us directly on WhatsApp. Our team will respond in real time and resolve the matter the same day.',
+    marketingTitle: 'Looking for proper marketing?',
+    marketingBody:  'If you want a long-term, structured marketing campaign for your brand or business, do not place a casual order — reach out to us directly on WhatsApp. We will share a custom plan tailored to your goals, audience and budget.'
+  };
+  raw = raw || {};
+  return {
+    enabled:        raw.enabled === undefined ? d.enabled : parseBool(raw.enabled),
+    title:          String(raw.title          || d.title).trim(),
+    intro:          String(raw.intro          || d.intro).trim(),
+    fillTitle:      String(raw.fillTitle      || d.fillTitle).trim(),
+    fillBody:       String(raw.fillBody       || d.fillBody).trim(),
+    problemTitle:   String(raw.problemTitle   || d.problemTitle).trim(),
+    problemBody:    String(raw.problemBody    || d.problemBody).trim(),
+    marketingTitle: String(raw.marketingTitle || d.marketingTitle).trim(),
+    marketingBody:  String(raw.marketingBody  || d.marketingBody).trim()
+  };
+}
+
 function normalizeConfig(cfg) {
   return {
     allowSingleOrder: parseBool(cfg.allowSingleOrder !== undefined ? cfg.allowSingleOrder : true),
@@ -153,6 +219,11 @@ function normalizeConfig(cfg) {
     offerStart:       String(cfg.offerStart       || '').trim(),
     offerEnd:         String(cfg.offerEnd         || '').trim(),
     themeColor:       String(cfg.themeColor       || 'blue').trim(),
+    allowPromoCode:   parseBool(cfg.allowPromoCode !== undefined ? cfg.allowPromoCode : false),
+    offerPromoCode:   String(cfg.offerPromoCode   || '').trim().toUpperCase(),
+    heroStats:        normalizeHeroStats(cfg.heroStats),
+    help:             normalizeHelp(cfg.help),
+    chatbot:          normalizeChatbot(cfg.chatbot),
     whatsappNumber:   (function(raw){
       let d = String(raw || '').replace(/\D/g, '');
       if (!d) return '923143632195';
@@ -278,10 +349,12 @@ app.post('/api/config', requireAuth, requireManagerOrAdmin, (req, res) => {
     const merged = Object.assign({}, cur, {
       allowSingleOrder: req.body.allowSingleOrder !== undefined ? req.body.allowSingleOrder : cur.allowSingleOrder,
       allowBulkOrder:   req.body.allowBulkOrder   !== undefined ? req.body.allowBulkOrder   : cur.allowBulkOrder,
+      allowPromoCode:   req.body.allowPromoCode   !== undefined ? req.body.allowPromoCode   : cur.allowPromoCode,
       offerActive:      req.body.offerActive      !== undefined ? req.body.offerActive      : cur.offerActive,
       offerText:        req.body.offerText        !== undefined ? req.body.offerText        : cur.offerText,
       offerStart:       req.body.offerStart       !== undefined ? req.body.offerStart       : cur.offerStart,
-      offerEnd:         req.body.offerEnd         !== undefined ? req.body.offerEnd         : cur.offerEnd
+      offerEnd:         req.body.offerEnd         !== undefined ? req.body.offerEnd         : cur.offerEnd,
+      offerPromoCode:   req.body.offerPromoCode   !== undefined ? req.body.offerPromoCode   : cur.offerPromoCode
     });
     d.config = normalizeConfig(merged);
   } else {
@@ -375,12 +448,16 @@ app.post('/api/orders', rateLimitOrder, (req, res) => {
   let promoDiscount = 0;
   const promo = findActivePromo(body.promoCode);
   if (promo && rawSubtotal > 0) {
-    promoDiscount = computePromoDiscount(promo, rawSubtotal);
-    promoCode = promo.code;
-    promoLine = promo.type === 'percent'
-      ? promo.code + ' (' + promo.value + '% off)'
-      : promo.code + ' (₨' + promo.value.toLocaleString() + ' off)';
-    promo.uses = (promo.uses || 0) + 1;
+    const orderMode = String(body.mode || 'single').trim().toLowerCase();
+    const appliesTo = normalizeAppliesTo(promo.appliesTo);
+    if (appliesTo === 'both' || appliesTo === orderMode) {
+      promoDiscount = computePromoDiscount(promo, rawSubtotal);
+      promoCode = promo.code;
+      promoLine = promo.type === 'percent'
+        ? promo.code + ' (' + promo.value + '% off)'
+        : promo.code + ' (₨' + promo.value.toLocaleString() + ' off)';
+      promo.uses = (promo.uses || 0) + 1;
+    }
   }
 
   const finalTotal = promoDiscount > 0 && rawSubtotal > 0
@@ -647,6 +724,11 @@ function computePromoDiscount(promo, subtotal) {
 app.get('/api/promos', requireAuth, requireManagerOrAdmin, (req, res) => {
   const d = loadData(); res.json(d.promos || []);
 });
+function normalizeAppliesTo(raw) {
+  const v = String(raw || 'both').trim().toLowerCase();
+  return (v === 'single' || v === 'bulk') ? v : 'both';
+}
+
 app.post('/api/promos', requireAuth, requireManagerOrAdmin, (req, res) => {
   const d = loadData();
   const code = String(req.body.code || '').trim().toUpperCase();
@@ -660,10 +742,11 @@ app.post('/api/promos', requireAuth, requireManagerOrAdmin, (req, res) => {
   const item = {
     id: 'p' + Date.now() + Math.round(Math.random() * 1000),
     code, type, value,
-    expiry:  String(req.body.expiry || '').trim(),
-    maxUses: Math.max(0, Number(req.body.maxUses) || 0),
-    uses:    0,
-    disabled: false,
+    expiry:    String(req.body.expiry || '').trim(),
+    maxUses:   Math.max(0, Number(req.body.maxUses) || 0),
+    uses:      0,
+    appliesTo: normalizeAppliesTo(req.body.appliesTo),
+    disabled:  false,
     createdAt: new Date().toISOString()
   };
   d.promos.unshift(item); saveData(d); res.json(item);
@@ -679,11 +762,32 @@ app.delete('/api/promos/:id', requireAuth, requireManagerOrAdmin, (req, res) => 
   d.promos = (d.promos || []).filter(x => x.id !== req.params.id);
   saveData(d); res.json({ success: true });
 });
-// Public validation endpoint
+// Public validation endpoint — returns usage info too
+// Pass ?mode=single|bulk to also enforce appliesTo
 app.get('/api/promos/validate/:code', (req, res) => {
   const p = findActivePromo(req.params.code);
   if (!p) return res.status(404).json({ valid: false, error: 'Invalid or expired code.' });
-  res.json({ valid: true, code: p.code, type: p.type, value: p.value });
+  const appliesTo = normalizeAppliesTo(p.appliesTo);
+  const mode = String(req.query.mode || '').trim().toLowerCase();
+  if (mode && appliesTo !== 'both' && mode !== appliesTo) {
+    return res.status(403).json({
+      valid: false,
+      error: 'This code is only valid for ' + appliesTo + ' orders.'
+    });
+  }
+  const maxUses = Number(p.maxUses) || 0;
+  const uses = Number(p.uses) || 0;
+  res.json({
+    valid: true,
+    code: p.code,
+    type: p.type,
+    value: p.value,
+    maxUses,
+    uses,
+    usesLeft: maxUses ? Math.max(0, maxUses - uses) : null,
+    expiry: p.expiry || '',
+    appliesTo
+  });
 });
 
 /* ── ACTIVITY LOG (Manager + Admin only) ── */
